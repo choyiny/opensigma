@@ -13,6 +13,7 @@ import { upsertPayout } from '../upserts/payouts';
 import { upsertSetupIntent } from '../upserts/setup_intents';
 import { upsertCoupon } from '../upserts/coupons';
 import { upsertPromotionCode } from '../upserts/promotion_codes';
+import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -29,6 +30,7 @@ const payoutHandler: Handler = (db, obj, ts) => upsertPayout(db, obj as Stripe.P
 const setupIntentHandler: Handler = (db, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
 const couponHandler: Handler = (db, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
 const promotionCodeHandler: Handler = (db, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
+const subscriptionScheduleHandler: Handler = (db, obj, ts) => upsertSubscriptionSchedule(db, obj as Stripe.SubscriptionSchedule, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -113,4 +115,12 @@ export const HANDLERS: Record<string, Handler> = {
 
   'promotion_code.created': promotionCodeHandler,
   'promotion_code.updated': promotionCodeHandler,
+
+  'subscription_schedule.created': subscriptionScheduleHandler,
+  'subscription_schedule.updated': subscriptionScheduleHandler,
+  'subscription_schedule.released': subscriptionScheduleHandler,
+  'subscription_schedule.canceled': subscriptionScheduleHandler,
+  'subscription_schedule.completed': subscriptionScheduleHandler,
+  'subscription_schedule.expiring': subscriptionScheduleHandler,
+  'subscription_schedule.aborted': subscriptionScheduleHandler,
 };
