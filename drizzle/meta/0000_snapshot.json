@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "467370af-dc00-4396-b51d-e3965cf83f8e",
+  "id": "597decc6-cebd-449d-aff6-b4c5499ebfc5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "backload_state": {
@@ -172,13 +172,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "dispute": {
-          "name": "dispute",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "disputed": {
           "name": "disputed",
           "type": "integer",
@@ -209,13 +202,6 @@
         },
         "fraud_details": {
           "name": "fraud_details",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "invoice": {
-          "name": "invoice",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -616,13 +602,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "amount_excluding_tax": {
-          "name": "amount_excluding_tax",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "currency": {
           "name": "currency",
           "type": "text",
@@ -665,13 +644,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "invoice_item": {
-          "name": "invoice_item",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "livemode": {
           "name": "livemode",
           "type": "integer",
@@ -686,6 +658,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "parent": {
+          "name": "parent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "period": {
           "name": "period",
           "type": "text",
@@ -693,29 +672,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "plan": {
-          "name": "plan",
+        "pretax_credit_amounts": {
+          "name": "pretax_credit_amounts",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "price": {
-          "name": "price",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "proration": {
-          "name": "proration",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "proration_details": {
-          "name": "proration_details",
+        "pricing": {
+          "name": "pricing",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -728,6 +693,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "quantity_decimal": {
+          "name": "quantity_decimal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "subscription": {
           "name": "subscription",
           "type": "text",
@@ -735,36 +707,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "subscription_item": {
-          "name": "subscription_item",
-          "type": "text",
+        "subtotal": {
+          "name": "subtotal",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "tax_amounts": {
-          "name": "tax_amounts",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "tax_rates": {
-          "name": "tax_rates",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "unit_amount_excluding_tax": {
-          "name": "unit_amount_excluding_tax",
+        "taxes": {
+          "name": "taxes",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -838,8 +789,22 @@
           "notNull": false,
           "autoincrement": false
         },
+        "amount_overpaid": {
+          "name": "amount_overpaid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "amount_paid": {
           "name": "amount_paid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "amount_paid_off_stripe": {
+          "name": "amount_paid_off_stripe",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -862,13 +827,6 @@
         "application": {
           "name": "application",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "application_fee_amount": {
-          "name": "application_fee_amount",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -901,15 +859,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "billing_reason": {
-          "name": "billing_reason",
-          "type": "text",
+        "automatically_finalizes_at": {
+          "name": "automatically_finalizes_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "charge": {
-          "name": "charge",
+        "billing_reason": {
+          "name": "billing_reason",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -945,6 +903,13 @@
         },
         "customer": {
           "name": "customer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_account": {
+          "name": "customer_account",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1022,13 +987,6 @@
         },
         "description": {
           "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "discount": {
-          "name": "discount",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1146,22 +1104,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "paid": {
-          "name": "paid",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "paid_out_of_band": {
-          "name": "paid_out_of_band",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "payment_intent": {
-          "name": "payment_intent",
+        "parent": {
+          "name": "parent",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1198,13 +1142,6 @@
         "pre_payment_credit_notes_amount": {
           "name": "pre_payment_credit_notes_amount",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "quote": {
-          "name": "quote",
-          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1265,20 +1202,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "subscription": {
-          "name": "subscription",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "subscription_details": {
-          "name": "subscription_details",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "subtotal": {
           "name": "subtotal",
           "type": "integer",
@@ -1288,13 +1211,6 @@
         },
         "subtotal_excluding_tax": {
           "name": "subtotal_excluding_tax",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "tax": {
-          "name": "tax",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1328,15 +1244,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "total_tax_amounts": {
-          "name": "total_tax_amounts",
+        "total_pretax_credit_amounts": {
+          "name": "total_pretax_credit_amounts",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "transfer_data": {
-          "name": "transfer_data",
+        "total_taxes": {
+          "name": "total_taxes",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1363,13 +1279,6 @@
           "name": "idx_invoices_customer",
           "columns": [
             "customer"
-          ],
-          "isUnique": false
-        },
-        "idx_invoices_subscription": {
-          "name": "idx_invoices_subscription",
-          "columns": [
-            "subscription"
           ],
           "isUnique": false
         },
@@ -1875,13 +1784,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "attributes": {
-          "name": "attributes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created": {
           "name": "created",
           "type": "integer",
@@ -1913,6 +1815,13 @@
         "livemode": {
           "name": "livemode",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketing_features": {
+          "name": "marketing_features",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -2253,6 +2162,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "billed_until": {
+          "name": "billed_until",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "billing_thresholds": {
           "name": "billing_thresholds",
           "type": "text",
@@ -2263,6 +2179,27 @@
         "created": {
           "name": "created",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "current_period_end": {
+          "name": "current_period_end",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "current_period_start": {
+          "name": "current_period_start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "discounts": {
+          "name": "discounts",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -2377,6 +2314,27 @@
           "notNull": false,
           "autoincrement": false
         },
+        "billing_cycle_anchor_config": {
+          "name": "billing_cycle_anchor_config",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "billing_mode": {
+          "name": "billing_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "billing_schedules": {
+          "name": "billing_schedules",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "billing_thresholds": {
           "name": "billing_thresholds",
           "type": "text",
@@ -2433,22 +2391,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "current_period_end": {
-          "name": "current_period_end",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "current_period_start": {
-          "name": "current_period_start",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "customer": {
           "name": "customer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_account": {
+          "name": "customer_account",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -2489,8 +2440,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "discount": {
-          "name": "discount",
+        "discounts": {
+          "name": "discounts",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -2499,6 +2450,13 @@
         "ended_at": {
           "name": "ended_at",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "invoice_settings": {
+          "name": "invoice_settings",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -2513,6 +2471,13 @@
         "livemode": {
           "name": "livemode",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "managed_payments": {
+          "name": "managed_payments",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -2568,6 +2533,13 @@
         },
         "pending_update": {
           "name": "pending_update",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "presentment_details": {
+          "name": "presentment_details",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

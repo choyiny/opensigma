@@ -5,12 +5,9 @@ import { subscriptions, subscriptionItems } from '../db/schema';
 
 export async function upsertSubscription(
   db: DB,
-  sInput: Stripe.Subscription,
+  s: Stripe.Subscription,
   eventCreated: number,
 ): Promise<void> {
-  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
-  // shape (per sync-engine), so widen for field access.
-  const s = sInput as Stripe.Subscription & Record<string, any>;
   const customerId = typeof s.customer === 'string' ? s.customer : s.customer.id;
 
   const subRow = {
@@ -20,6 +17,9 @@ export async function upsertSubscription(
     applicationFeePercent: s.application_fee_percent ?? null,
     automaticTax: s.automatic_tax ?? null,
     billingCycleAnchor: s.billing_cycle_anchor,
+    billingCycleAnchorConfig: s.billing_cycle_anchor_config ?? null,
+    billingMode: s.billing_mode ?? null,
+    billingSchedules: s.billing_schedules ?? null,
     billingThresholds: s.billing_thresholds ?? null,
     cancelAt: s.cancel_at ?? null,
     cancelAtPeriodEnd: s.cancel_at_period_end,
@@ -28,18 +28,19 @@ export async function upsertSubscription(
     collectionMethod: s.collection_method,
     created: s.created,
     currency: s.currency,
-    currentPeriodEnd: s.current_period_end,
-    currentPeriodStart: s.current_period_start,
     customer: customerId,
+    customerAccount: s.customer_account ?? null,
     daysUntilDue: s.days_until_due ?? null,
     defaultPaymentMethod: typeof s.default_payment_method === 'string' ? s.default_payment_method : null,
     defaultSource: typeof s.default_source === 'string' ? s.default_source : null,
     defaultTaxRates: s.default_tax_rates ?? null,
     description: s.description ?? null,
-    discount: s.discount ?? null,
+    discounts: s.discounts ?? null,
     endedAt: s.ended_at ?? null,
+    invoiceSettings: s.invoice_settings ?? null,
     latestInvoice: typeof s.latest_invoice === 'string' ? s.latest_invoice : null,
     livemode: s.livemode,
+    managedPayments: s.managed_payments ?? null,
     metadata: s.metadata ?? null,
     nextPendingInvoiceItemInvoice: s.next_pending_invoice_item_invoice ?? null,
     onBehalfOf: typeof s.on_behalf_of === 'string' ? s.on_behalf_of : null,
@@ -48,6 +49,7 @@ export async function upsertSubscription(
     pendingInvoiceItemInterval: s.pending_invoice_item_interval ?? null,
     pendingSetupIntent: typeof s.pending_setup_intent === 'string' ? s.pending_setup_intent : null,
     pendingUpdate: s.pending_update ?? null,
+    presentmentDetails: s.presentment_details ?? null,
     schedule: typeof s.schedule === 'string' ? s.schedule : null,
     startDate: s.start_date,
     status: s.status,
@@ -69,8 +71,12 @@ export async function upsertSubscription(
     const itemRow = {
       id: item.id,
       object: item.object,
+      billedUntil: item.billed_until ?? null,
       billingThresholds: item.billing_thresholds ?? null,
       created: item.created,
+      currentPeriodEnd: item.current_period_end,
+      currentPeriodStart: item.current_period_start,
+      discounts: item.discounts ?? null,
       metadata: item.metadata ?? null,
       price: item.price.id,
       quantity: item.quantity ?? null,

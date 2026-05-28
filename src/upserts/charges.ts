@@ -7,12 +7,9 @@ const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : nu
 
 export async function upsertCharge(
   db: DB,
-  charge: Stripe.Charge,
+  c: Stripe.Charge,
   eventCreated: number,
 ): Promise<void> {
-  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
-  // shape (per sync-engine), so widen for field access.
-  const c = charge as Stripe.Charge & Record<string, any>;
   const row = {
     id: c.id,
     object: c.object,
@@ -31,13 +28,11 @@ export async function upsertCharge(
     customer: strOrNull(c.customer),
     description: c.description ?? null,
     destination: strOrNull((c as any).destination),
-    dispute: strOrNull(c.dispute),
     disputed: c.disputed,
     failureBalanceTransaction: strOrNull(c.failure_balance_transaction),
     failureCode: c.failure_code ?? null,
     failureMessage: c.failure_message ?? null,
     fraudDetails: c.fraud_details ?? null,
-    invoice: strOrNull(c.invoice),
     livemode: c.livemode,
     metadata: c.metadata ?? null,
     onBehalfOf: strOrNull(c.on_behalf_of),
@@ -82,13 +77,11 @@ export async function upsertCharge(
       customer: sql`excluded.customer`,
       description: sql`excluded.description`,
       destination: sql`excluded.destination`,
-      dispute: sql`excluded.dispute`,
       disputed: sql`excluded.disputed`,
       failureBalanceTransaction: sql`excluded.failure_balance_transaction`,
       failureCode: sql`excluded.failure_code`,
       failureMessage: sql`excluded.failure_message`,
       fraudDetails: sql`excluded.fraud_details`,
-      invoice: sql`excluded.invoice`,
       livemode: sql`excluded.livemode`,
       metadata: sql`excluded.metadata`,
       onBehalfOf: sql`excluded.on_behalf_of`,
