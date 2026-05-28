@@ -1,0 +1,34 @@
+{
+  "name": "stripe-to-workers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply stripe_sync",
+    "db:migrate:local": "wrangler d1 migrations apply stripe_sync --local",
+    "backload:reset": "wrangler d1 execute stripe_sync --command \"UPDATE backload_state SET cursor=NULL, status='idle'\""
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.23",
+    "stripe": "^22.2.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "workerd", "sharp"]
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.10",
+    "@cloudflare/workers-types": "^4.20260528.1",
+    "@types/node": "^25.9.1",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7",
+    "wrangler": "^4.95.0"
+  }
+}
