@@ -8,6 +8,13 @@
       "when": 1779940148015,
       "tag": "0000_mysterious_speed_demon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1779943518457,
+      "tag": "0001_fantastic_silk_fever",
+      "breakpoints": true
     }
   ]
 }
