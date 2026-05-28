@@ -12,6 +12,7 @@ import { upsertDispute } from '../upserts/disputes';
 import { upsertPayout } from '../upserts/payouts';
 import { upsertSetupIntent } from '../upserts/setup_intents';
 import { upsertCoupon } from '../upserts/coupons';
+import { upsertPromotionCode } from '../upserts/promotion_codes';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -27,6 +28,7 @@ const disputeHandler: Handler = (db, obj, ts) => upsertDispute(db, obj as Stripe
 const payoutHandler: Handler = (db, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
 const setupIntentHandler: Handler = (db, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
 const couponHandler: Handler = (db, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
+const promotionCodeHandler: Handler = (db, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -108,4 +110,7 @@ export const HANDLERS: Record<string, Handler> = {
   'coupon.created': couponHandler,
   'coupon.updated': couponHandler,
   'coupon.deleted': couponHandler,
+
+  'promotion_code.created': promotionCodeHandler,
+  'promotion_code.updated': promotionCodeHandler,
 };
