@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, primaryKey } from 'drizzle-orm/sqlite-core';
 
 export const stripeEvents = sqliteTable(
   'stripe_events',
@@ -21,6 +21,21 @@ export const backloadState = sqliteTable('backload_state', {
   lastSyncedAt: integer('last_synced_at'),
   updatedAt: integer('updated_at').notNull(),
 });
+
+export const backloadParentProgress = sqliteTable(
+  'backload_parent_progress',
+  {
+    resource: text('resource').notNull(),
+    parentId: text('parent_id').notNull(),
+    status: text('status', { enum: ['idle', 'in_progress', 'done'] }).notNull().default('idle'),
+    cursor: text('cursor'),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.resource, t.parentId] }),
+    statusIdx: index('idx_backload_parent_progress_resource_status').on(t.resource, t.status),
+  }),
+);
 
 export const customers = sqliteTable(
   'customers',

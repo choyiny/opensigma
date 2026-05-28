@@ -5,15 +5,18 @@ export interface Env {
   STRIPE_WEBHOOK_SECRET: string;
 }
 
-export interface BackloadJob {
-  resource:
-    | 'customers'
-    | 'products'
-    | 'prices'
-    | 'subscriptions'
-    | 'invoices'
-    | 'charges'
-    | 'payment_intents'
-    | 'refunds';
-  cursor: string | null;
-}
+export type AccountListableResource =
+  | 'customers' | 'products' | 'prices' | 'subscriptions'
+  | 'invoices' | 'charges' | 'payment_intents' | 'refunds'
+  | 'disputes' | 'payouts' | 'credit_notes' | 'checkout_sessions'
+  | 'setup_intents' | 'coupons' | 'promotion_codes'
+  | 'subscription_schedules' | 'reviews' | 'early_fraud_warnings';
+
+export type PerParentResource =
+  | 'payment_methods' | 'tax_ids'
+  | 'credit_note_line_items' | 'checkout_session_line_items'
+  | 'invoice_line_items';
+
+export type BackloadJob =
+  | { kind: 'page'; resource: AccountListableResource; cursor: string | null }
+  | { kind: 'child-page'; resource: PerParentResource; parent_id: string; cursor: string | null };
