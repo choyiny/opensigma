@@ -10,7 +10,8 @@ export type AccountListableResource =
   | 'invoices' | 'charges' | 'payment_intents' | 'refunds'
   | 'disputes' | 'payouts' | 'credit_notes' | 'checkout_sessions'
   | 'setup_intents' | 'coupons' | 'promotion_codes'
-  | 'subscription_schedules' | 'reviews' | 'early_fraud_warnings';
+  | 'subscription_schedules' | 'reviews' | 'early_fraud_warnings'
+  | 'balance_transactions';
 
 export type PerParentResource =
   | 'payment_methods' | 'tax_ids'

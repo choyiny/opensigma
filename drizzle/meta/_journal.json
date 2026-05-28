@@ -15,6 +15,27 @@
       "when": 1779943518457,
       "tag": "0001_fantastic_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1779983300526,
+      "tag": "0002_lumpy_magneto",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1779983312199,
+      "tag": "0003_seed_balance_transactions_backload",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1779983580234,
+      "tag": "0004_seed_backload_state_initial",
+      "breakpoints": true
     }
   ]
 }

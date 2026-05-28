@@ -369,6 +369,32 @@ export const charges = sqliteTable(
   }),
 );
 
+export const balanceTransactions = sqliteTable(
+  'balance_transactions',
+  {
+    id: text('id').primaryKey(),
+    object: text('object'),
+    amount: integer('amount'),
+    availableOn: integer('available_on'),
+    created: integer('created'),
+    currency: text('currency'),
+    description: text('description'),
+    exchangeRate: real('exchange_rate'),
+    fee: integer('fee'),
+    feeDetails: text('fee_details', { mode: 'json' }),
+    net: integer('net'),
+    reportingCategory: text('reporting_category'),
+    source: text('source'),
+    status: text('status'),
+    type: text('type'),
+    lastEventAt: integer('last_event_at').notNull().default(0),
+  },
+  (t) => ({
+    sourceIdx: index('idx_balance_transactions_source').on(t.source),
+    createdIdx: index('idx_balance_transactions_created').on(t.created),
+  }),
+);
+
 export const paymentIntents = sqliteTable(
   'payment_intents',
   {

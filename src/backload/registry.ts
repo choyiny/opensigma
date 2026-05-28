@@ -22,6 +22,7 @@ import { upsertCreditNote, upsertCreditNoteLine } from '../upserts/credit_notes'
 import { upsertCheckoutSession, upsertCheckoutSessionLine } from '../upserts/checkout_sessions';
 import { upsertPaymentMethod } from '../upserts/payment_methods';
 import { upsertTaxId } from '../upserts/tax_ids';
+import { upsertBalanceTransaction } from '../upserts/balance_transactions';
 import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
@@ -203,6 +204,10 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
         }).onConflictDoNothing();
       }
     },
+  },
+  balance_transactions: {
+    list: (s, c) => s.balanceTransactions.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    upsert: (db, obj, ts) => upsertBalanceTransaction(db, obj, ts),
   },
   // Remaining parent/child resources are added by their respective tasks in Phase C.
 } as Record<AccountListableResource, AccountListBinding>;

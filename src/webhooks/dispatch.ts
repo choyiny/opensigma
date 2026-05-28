@@ -21,6 +21,7 @@ import { upsertCreditNote, upsertCreditNoteLines } from '../upserts/credit_notes
 import { upsertCheckoutSession, upsertCheckoutSessionLines } from '../upserts/checkout_sessions';
 import { upsertPaymentMethod } from '../upserts/payment_methods';
 import { upsertTaxId } from '../upserts/tax_ids';
+import { upsertBalanceTransactionRef } from '../upserts/balance_transactions';
 
 export interface Ctx {
   db: DB;
@@ -36,11 +37,32 @@ const priceHandler: Handler = ({ db, stripe }, obj, ts) =>
   upsertPrice(db, obj as Stripe.Price, ts, { stripe });
 const subscriptionHandler: Handler = ({ db }, obj, ts) => upsertSubscription(db, obj as Stripe.Subscription, ts);
 const invoiceHandler: Handler = ({ db }, obj, ts) => upsertInvoice(db, obj as Stripe.Invoice, ts);
-const chargeHandler: Handler = ({ db }, obj, ts) => upsertCharge(db, obj as Stripe.Charge, ts);
+const chargeHandler: Handler = async ({ db, stripe }, obj, ts) => {
+  const c = obj as Stripe.Charge;
+  await upsertCharge(db, c, ts);
+  await upsertBalanceTransactionRef(db, stripe, c.balance_transaction, ts);
+  await upsertBalanceTransactionRef(db, stripe, c.failure_balance_transaction, ts);
+};
 const paymentIntentHandler: Handler = ({ db }, obj, ts) => upsertPaymentIntent(db, obj as Stripe.PaymentIntent, ts);
-const refundHandler: Handler = ({ db }, obj, ts) => upsertRefund(db, obj as Stripe.Refund, ts);
-const disputeHandler: Handler = ({ db }, obj, ts) => upsertDispute(db, obj as Stripe.Dispute, ts);
-const payoutHandler: Handler = ({ db }, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
+const refundHandler: Handler = async ({ db, stripe }, obj, ts) => {
+  const r = obj as Stripe.Refund;
+  await upsertRefund(db, r, ts);
+  await upsertBalanceTransactionRef(db, stripe, r.balance_transaction, ts);
+  await upsertBalanceTransactionRef(db, stripe, r.failure_balance_transaction, ts);
+};
+const disputeHandler: Handler = async ({ db, stripe }, obj, ts) => {
+  const d = obj as Stripe.Dispute;
+  await upsertDispute(db, d, ts);
+  for (const bt of d.balance_transactions ?? []) {
+    await upsertBalanceTransactionRef(db, stripe, bt, ts);
+  }
+};
+const payoutHandler: Handler = async ({ db, stripe }, obj, ts) => {
+  const p = obj as Stripe.Payout;
+  await upsertPayout(db, p, ts);
+  await upsertBalanceTransactionRef(db, stripe, p.balance_transaction, ts);
+  await upsertBalanceTransactionRef(db, stripe, p.failure_balance_transaction, ts);
+};
 const setupIntentHandler: Handler = ({ db }, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
 const couponHandler: Handler = ({ db }, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
 const promotionCodeHandler: Handler = ({ db }, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
