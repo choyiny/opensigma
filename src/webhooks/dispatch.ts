@@ -15,6 +15,7 @@ import { upsertCoupon } from '../upserts/coupons';
 import { upsertPromotionCode } from '../upserts/promotion_codes';
 import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
+import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -33,6 +34,7 @@ const couponHandler: Handler = (db, obj, ts) => upsertCoupon(db, obj as Stripe.C
 const promotionCodeHandler: Handler = (db, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
 const subscriptionScheduleHandler: Handler = (db, obj, ts) => upsertSubscriptionSchedule(db, obj as Stripe.SubscriptionSchedule, ts);
 const reviewHandler: Handler = (db, obj, ts) => upsertReview(db, obj as Stripe.Review, ts);
+const earlyFraudWarningHandler: Handler = (db, obj, ts) => upsertEarlyFraudWarning(db, obj as Stripe.Radar.EarlyFraudWarning, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -128,4 +130,7 @@ export const HANDLERS: Record<string, Handler> = {
 
   'review.opened': reviewHandler,
   'review.closed': reviewHandler,
+
+  'radar.early_fraud_warning.created': earlyFraudWarningHandler,
+  'radar.early_fraud_warning.updated': earlyFraudWarningHandler,
 };
