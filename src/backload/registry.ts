@@ -19,6 +19,7 @@ import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote, upsertCreditNoteLine } from '../upserts/credit_notes';
 import { upsertCheckoutSession, upsertCheckoutSessionLine } from '../upserts/checkout_sessions';
+import { upsertPaymentMethod } from '../upserts/payment_methods';
 import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
@@ -44,6 +45,12 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
   customers: {
     list: (s, c) => s.customers.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertCustomer(db, obj, ts),
+    onObject: async (db, obj) => {
+      await db.insert(backloadParentProgress).values([
+        { resource: 'payment_methods', parentId: obj.id, status: 'idle', updatedAt: Date.now() },
+        { resource: 'tax_ids',         parentId: obj.id, status: 'idle', updatedAt: Date.now() },
+      ]).onConflictDoNothing();
+    },
   },
   products: {
     list: (s, c) => s.products.list({ limit: 100, starting_after: c ?? undefined }) as any,
@@ -133,6 +140,12 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
 } as Record<AccountListableResource, AccountListBinding>;
 
 export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> = {
+  payment_methods: {
+    parentResource: 'customers',
+    list: (s, parentId, c) =>
+      (s as any).customers.listPaymentMethods(parentId, { limit: 100, starting_after: c ?? undefined }),
+    upsert: (db, obj, ts) => upsertPaymentMethod(db, obj, ts),
+  },
   credit_note_line_items: {
     parentResource: 'credit_notes',
     list: async (s, parentId, c) => {

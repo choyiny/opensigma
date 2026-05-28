@@ -18,6 +18,7 @@ import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote } from '../upserts/credit_notes';
 import { upsertCheckoutSession } from '../upserts/checkout_sessions';
+import { upsertPaymentMethod } from '../upserts/payment_methods';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -45,6 +46,8 @@ const checkoutSessionHandler: Handler = async (db, obj, ts) => {
   await upsertCheckoutSession(db, obj as Stripe.Checkout.Session, ts);
   // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
 };
+const paymentMethodHandler: Handler = (db, obj, ts) =>
+  upsertPaymentMethod(db, obj as Stripe.PaymentMethod, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -152,4 +155,10 @@ export const HANDLERS: Record<string, Handler> = {
   'checkout.session.expired': checkoutSessionHandler,
   'checkout.session.async_payment_succeeded': checkoutSessionHandler,
   'checkout.session.async_payment_failed': checkoutSessionHandler,
+
+  'payment_method.attached': paymentMethodHandler,
+  'payment_method.detached': paymentMethodHandler,
+  'payment_method.updated': paymentMethodHandler,
+  'payment_method.automatically_updated': paymentMethodHandler,
+  'payment_method.card_automatically_updated': paymentMethodHandler,
 };
