@@ -1,5 +1,5 @@
 import type Stripe from 'stripe';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { Env, BackloadJob, AccountListableResource, PerParentResource } from '../env';
 import { getDb, type DB } from '../db/client';
 import { backloadState, backloadParentProgress } from '../db/schema';
