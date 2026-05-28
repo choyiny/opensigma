@@ -17,6 +17,7 @@ import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote } from '../upserts/credit_notes';
+import { upsertCheckoutSession } from '../upserts/checkout_sessions';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -38,6 +39,10 @@ const reviewHandler: Handler = (db, obj, ts) => upsertReview(db, obj as Stripe.R
 const earlyFraudWarningHandler: Handler = (db, obj, ts) => upsertEarlyFraudWarning(db, obj as Stripe.Radar.EarlyFraudWarning, ts);
 const creditNoteHandler: Handler = async (db, obj, ts) => {
   await upsertCreditNote(db, obj as Stripe.CreditNote, ts);
+  // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
+};
+const checkoutSessionHandler: Handler = async (db, obj, ts) => {
+  await upsertCheckoutSession(db, obj as Stripe.Checkout.Session, ts);
   // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
 };
 
@@ -142,4 +147,9 @@ export const HANDLERS: Record<string, Handler> = {
   'credit_note.created': creditNoteHandler,
   'credit_note.updated': creditNoteHandler,
   'credit_note.voided': creditNoteHandler,
+
+  'checkout.session.completed': checkoutSessionHandler,
+  'checkout.session.expired': checkoutSessionHandler,
+  'checkout.session.async_payment_succeeded': checkoutSessionHandler,
+  'checkout.session.async_payment_failed': checkoutSessionHandler,
 };

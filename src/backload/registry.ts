@@ -18,6 +18,7 @@ import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote, upsertCreditNoteLine } from '../upserts/credit_notes';
+import { upsertCheckoutSession, upsertCheckoutSessionLine } from '../upserts/checkout_sessions';
 import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
@@ -116,8 +117,19 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
       }).onConflictDoNothing();
     },
   },
-  // checkout_sessions, and remaining parent/child resources are added by their
-  // respective tasks in Phase C.
+  checkout_sessions: {
+    list: (s, c) => s.checkout.sessions.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    upsert: (db, obj, ts) => upsertCheckoutSession(db, obj, ts),
+    onObject: async (db, obj) => {
+      await db.insert(backloadParentProgress).values({
+        resource: 'checkout_session_line_items',
+        parentId: obj.id,
+        status: 'idle',
+        updatedAt: Date.now(),
+      }).onConflictDoNothing();
+    },
+  },
+  // Remaining parent/child resources are added by their respective tasks in Phase C.
 } as Record<AccountListableResource, AccountListBinding>;
 
 export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> = {
@@ -132,5 +144,17 @@ export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> =
       return page;
     },
     upsert: (db, obj, ts) => upsertCreditNoteLine(db, obj, obj.credit_note ?? '', ts),
+  },
+  checkout_session_line_items: {
+    parentResource: 'checkout_sessions',
+    list: async (s, parentId, c) => {
+      const page = await (s as any).checkout.sessions.listLineItems(parentId, {
+        limit: 100,
+        starting_after: c ?? undefined,
+      });
+      for (const line of page.data) line.checkout_session = parentId;
+      return page;
+    },
+    upsert: (db, obj, ts) => upsertCheckoutSessionLine(db, obj, (obj as any).checkout_session ?? '', ts),
   },
 } as Record<PerParentResource, ChildListBinding>;
