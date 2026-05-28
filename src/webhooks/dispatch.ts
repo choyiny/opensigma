@@ -10,6 +10,7 @@ import { upsertPaymentIntent } from '../upserts/payment_intents';
 import { upsertRefund } from '../upserts/refunds';
 import { upsertDispute } from '../upserts/disputes';
 import { upsertPayout } from '../upserts/payouts';
+import { upsertSetupIntent } from '../upserts/setup_intents';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -23,6 +24,7 @@ const paymentIntentHandler: Handler = (db, obj, ts) => upsertPaymentIntent(db, o
 const refundHandler: Handler = (db, obj, ts) => upsertRefund(db, obj as Stripe.Refund, ts);
 const disputeHandler: Handler = (db, obj, ts) => upsertDispute(db, obj as Stripe.Dispute, ts);
 const payoutHandler: Handler = (db, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
+const setupIntentHandler: Handler = (db, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -94,4 +96,10 @@ export const HANDLERS: Record<string, Handler> = {
   'payout.failed': payoutHandler,
   'payout.canceled': payoutHandler,
   'payout.reconciliation_completed': payoutHandler,
+
+  'setup_intent.created': setupIntentHandler,
+  'setup_intent.succeeded': setupIntentHandler,
+  'setup_intent.setup_failed': setupIntentHandler,
+  'setup_intent.canceled': setupIntentHandler,
+  'setup_intent.requires_action': setupIntentHandler,
 };

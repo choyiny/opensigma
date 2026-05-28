@@ -11,6 +11,7 @@ import { upsertPaymentIntent } from '../upserts/payment_intents';
 import { upsertRefund } from '../upserts/refunds';
 import { upsertDispute } from '../upserts/disputes';
 import { upsertPayout } from '../upserts/payouts';
+import { upsertSetupIntent } from '../upserts/setup_intents';
 
 export interface AccountListBinding {
   list: (stripe: Stripe, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
@@ -71,6 +72,10 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
   payouts: {
     list: (s, c) => s.payouts.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertPayout(db, obj, ts),
+  },
+  setup_intents: {
+    list: (s, c) => s.setupIntents.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    upsert: (db, obj, ts) => upsertSetupIntent(db, obj, ts),
   },
   // disputes, payouts, credit_notes, checkout_sessions, setup_intents, coupons,
   // promotion_codes, subscription_schedules, reviews, early_fraud_warnings
