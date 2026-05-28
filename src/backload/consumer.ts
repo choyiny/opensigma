@@ -37,6 +37,7 @@ async function processAccountPage(
     .set({ status: 'in_progress', updatedAt: Date.now() })
     .where(eq(backloadState.resource, resource));
 
+  console.log(`[backload] endpoint=${resource} page=${cursor ?? 'first'}`);
   const page = await binding.list(stripe, cursor);
   for (const obj of page.data) {
     await binding.upsert(db, obj, obj.created);
@@ -78,6 +79,7 @@ async function processChildPage(
 
   let page: { data: any[]; has_more: boolean };
   try {
+    console.log(`[backload] endpoint=${resource} parent=${parentId} page=${cursor ?? 'first'}`);
     page = await binding.list(stripe, parentId, cursor);
   } catch (err: any) {
     // Parent gone — close out without DLQ noise.
