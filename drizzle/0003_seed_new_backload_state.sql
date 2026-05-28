@@ -1,0 +1,16 @@
+INSERT INTO backload_state (resource, cursor, status, updated_at) VALUES
+  ('disputes',                    NULL, 'idle', unixepoch() * 1000),
+  ('payouts',                     NULL, 'idle', unixepoch() * 1000),
+  ('credit_notes',                NULL, 'idle', unixepoch() * 1000),
+  ('checkout_sessions',           NULL, 'idle', unixepoch() * 1000),
+  ('setup_intents',               NULL, 'idle', unixepoch() * 1000),
+  ('coupons',                     NULL, 'idle', unixepoch() * 1000),
+  ('promotion_codes',             NULL, 'idle', unixepoch() * 1000),
+  ('subscription_schedules',      NULL, 'idle', unixepoch() * 1000),
+  ('reviews',                     NULL, 'idle', unixepoch() * 1000),
+  ('early_fraud_warnings',        NULL, 'idle', unixepoch() * 1000),
+  ('payment_methods',             NULL, 'idle', unixepoch() * 1000),
+  ('tax_ids',                     NULL, 'idle', unixepoch() * 1000),
+  ('credit_note_line_items',      NULL, 'idle', unixepoch() * 1000),
+  ('checkout_session_line_items', NULL, 'idle', unixepoch() * 1000),
+  ('invoice_line_items',          NULL, 'idle', unixepoch() * 1000);
