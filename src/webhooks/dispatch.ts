@@ -11,6 +11,7 @@ import { upsertRefund } from '../upserts/refunds';
 import { upsertDispute } from '../upserts/disputes';
 import { upsertPayout } from '../upserts/payouts';
 import { upsertSetupIntent } from '../upserts/setup_intents';
+import { upsertCoupon } from '../upserts/coupons';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -25,6 +26,7 @@ const refundHandler: Handler = (db, obj, ts) => upsertRefund(db, obj as Stripe.R
 const disputeHandler: Handler = (db, obj, ts) => upsertDispute(db, obj as Stripe.Dispute, ts);
 const payoutHandler: Handler = (db, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
 const setupIntentHandler: Handler = (db, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
+const couponHandler: Handler = (db, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -102,4 +104,8 @@ export const HANDLERS: Record<string, Handler> = {
   'setup_intent.setup_failed': setupIntentHandler,
   'setup_intent.canceled': setupIntentHandler,
   'setup_intent.requires_action': setupIntentHandler,
+
+  'coupon.created': couponHandler,
+  'coupon.updated': couponHandler,
+  'coupon.deleted': couponHandler,
 };
