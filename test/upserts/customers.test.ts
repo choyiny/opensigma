@@ -1,4 +1,5 @@
 // test/upserts/customers.test.ts
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -6,7 +7,7 @@ import { getDb } from '../../src/db/client';
 import { customers } from '../../src/db/schema';
 import { upsertCustomer } from '../../src/upserts/customers';
 
-const stripeCustomer = (overrides: Partial<any> = {}) => ({
+const stripeCustomer = (overrides: Partial<any> = {}): Stripe.Customer => ({
   id: 'cus_test_1',
   object: 'customer',
   email: 'a@example.com',
@@ -15,7 +16,7 @@ const stripeCustomer = (overrides: Partial<any> = {}) => ({
   created: 1700000000,
   livemode: false,
   ...overrides,
-});
+}) as unknown as Stripe.Customer;
 
 describe('upsertCustomer', () => {
   beforeEach(async () => {

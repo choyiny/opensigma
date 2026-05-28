@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -5,7 +6,7 @@ import { getDb } from '../../src/db/client';
 import { subscriptions, subscriptionItems } from '../../src/db/schema';
 import { upsertSubscription } from '../../src/upserts/subscriptions';
 
-const stripeSub = (overrides: Partial<any> = {}) => ({
+const stripeSub = (overrides: Partial<any> = {}): Stripe.Subscription => (({
   id: 'sub_test_1',
   object: 'subscription',
   customer: 'cus_test_1',
@@ -31,7 +32,7 @@ const stripeSub = (overrides: Partial<any> = {}) => ({
     has_more: false,
   },
   ...overrides,
-});
+}) as unknown as Stripe.Subscription);
 
 describe('upsertSubscription', () => {
   beforeEach(async () => {

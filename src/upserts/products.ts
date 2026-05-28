@@ -5,9 +5,12 @@ import { products } from '../db/schema';
 
 export async function upsertProduct(
   db: DB,
-  p: Stripe.Product,
+  pInput: Stripe.Product,
   eventCreated: number,
 ): Promise<void> {
+  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
+  // shape (per sync-engine), so widen for field access.
+  const p = pInput as Stripe.Product & Record<string, any>;
   const row = {
     id: p.id,
     object: p.object,

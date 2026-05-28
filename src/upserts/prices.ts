@@ -28,7 +28,7 @@ export async function upsertPrice(
     transformQuantity: p.transform_quantity ?? null,
     type: p.type,
     unitAmount: p.unit_amount ?? null,
-    unitAmountDecimal: p.unit_amount_decimal ?? null,
+    unitAmountDecimal: p.unit_amount_decimal == null ? null : String(p.unit_amount_decimal),
     lastEventAt: eventCreated,
   };
   await db.insert(prices).values(row).onConflictDoUpdate({

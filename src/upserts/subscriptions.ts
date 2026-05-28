@@ -5,9 +5,12 @@ import { subscriptions, subscriptionItems } from '../db/schema';
 
 export async function upsertSubscription(
   db: DB,
-  s: Stripe.Subscription,
+  sInput: Stripe.Subscription,
   eventCreated: number,
 ): Promise<void> {
+  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
+  // shape (per sync-engine), so widen for field access.
+  const s = sInput as Stripe.Subscription & Record<string, any>;
   const customerId = typeof s.customer === 'string' ? s.customer : s.customer.id;
 
   const subRow = {

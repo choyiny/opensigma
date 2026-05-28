@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -5,7 +6,7 @@ import { getDb } from '../../src/db/client';
 import { refunds } from '../../src/db/schema';
 import { upsertRefund } from '../../src/upserts/refunds';
 
-const stripeRefund = (overrides: Partial<any> = {}) => ({
+const stripeRefund = (overrides: Partial<any> = {}): Stripe.Refund => ({
   id: 're_test_1',
   object: 'refund',
   amount: 500,
@@ -15,7 +16,7 @@ const stripeRefund = (overrides: Partial<any> = {}) => ({
   metadata: {},
   status: 'succeeded',
   ...overrides,
-});
+}) as unknown as Stripe.Refund;
 
 describe('upsertRefund', () => {
   beforeEach(async () => {

@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -5,7 +6,7 @@ import { getDb } from '../../src/db/client';
 import { prices } from '../../src/db/schema';
 import { upsertPrice } from '../../src/upserts/prices';
 
-const stripePrice = (overrides: Partial<any> = {}) => ({
+const stripePrice = (overrides: Partial<any> = {}): Stripe.Price => ({
   id: 'price_test_1',
   object: 'price',
   active: true,
@@ -18,7 +19,7 @@ const stripePrice = (overrides: Partial<any> = {}) => ({
   type: 'one_time',
   unit_amount: 1000,
   ...overrides,
-});
+}) as unknown as Stripe.Price;
 
 describe('upsertPrice', () => {
   beforeEach(async () => {

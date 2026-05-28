@@ -7,9 +7,12 @@ const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : nu
 
 export async function upsertInvoice(
   db: DB,
-  inv: Stripe.Invoice,
+  invInput: Stripe.Invoice,
   eventCreated: number,
 ): Promise<void> {
+  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
+  // shape (per sync-engine), so widen for field access.
+  const inv = invInput as Stripe.Invoice & Record<string, any>;
   const customerId = typeof inv.customer === 'string' ? inv.customer : inv.customer?.id ?? null;
 
   const row = {
@@ -181,7 +184,8 @@ export async function upsertInvoice(
     setWhere: sql`invoices.last_event_at < ${eventCreated}`,
   });
 
-  for (const line of inv.lines?.data ?? []) {
+  for (const lineInput of inv.lines?.data ?? []) {
+    const line = lineInput as Stripe.InvoiceLineItem & Record<string, any>;
     const lineRow = {
       id: line.id,
       object: line.object,

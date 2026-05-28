@@ -7,9 +7,12 @@ const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : nu
 
 export async function upsertCharge(
   db: DB,
-  c: Stripe.Charge,
+  charge: Stripe.Charge,
   eventCreated: number,
 ): Promise<void> {
+  // SDK types target the latest Stripe API; we mirror the 2024-10-28.acacia
+  // shape (per sync-engine), so widen for field access.
+  const c = charge as Stripe.Charge & Record<string, any>;
   const row = {
     id: c.id,
     object: c.object,

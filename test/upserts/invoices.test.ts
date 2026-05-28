@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -5,7 +6,7 @@ import { getDb } from '../../src/db/client';
 import { invoices, invoiceLineItems } from '../../src/db/schema';
 import { upsertInvoice } from '../../src/upserts/invoices';
 
-const stripeInvoice = (overrides: Partial<any> = {}) => ({
+const stripeInvoice = (overrides: Partial<any> = {}): Stripe.Invoice => (({
   id: 'in_test_1',
   object: 'invoice',
   customer: 'cus_test_1',
@@ -47,7 +48,7 @@ const stripeInvoice = (overrides: Partial<any> = {}) => ({
     has_more: false,
   },
   ...overrides,
-});
+}) as unknown as Stripe.Invoice);
 
 describe('upsertInvoice', () => {
   beforeEach(async () => {

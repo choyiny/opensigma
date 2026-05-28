@@ -1,4 +1,5 @@
 // test/upserts/products.test.ts
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -6,7 +7,7 @@ import { getDb } from '../../src/db/client';
 import { products } from '../../src/db/schema';
 import { upsertProduct } from '../../src/upserts/products';
 
-const stripeProduct = (overrides: Partial<any> = {}) => ({
+const stripeProduct = (overrides: Partial<any> = {}): Stripe.Product => ({
   id: 'prod_test_1',
   object: 'product',
   active: true,
@@ -15,7 +16,7 @@ const stripeProduct = (overrides: Partial<any> = {}) => ({
   livemode: false,
   metadata: {},
   ...overrides,
-});
+}) as unknown as Stripe.Product;
 
 describe('upsertProduct', () => {
   beforeEach(async () => {

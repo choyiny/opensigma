@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -5,7 +6,7 @@ import { getDb } from '../../src/db/client';
 import { paymentIntents } from '../../src/db/schema';
 import { upsertPaymentIntent } from '../../src/upserts/payment_intents';
 
-const stripePI = (overrides: Partial<any> = {}) => ({
+const stripePI = (overrides: Partial<any> = {}): Stripe.PaymentIntent => ({
   id: 'pi_test_1',
   object: 'payment_intent',
   amount: 1000,
@@ -20,7 +21,7 @@ const stripePI = (overrides: Partial<any> = {}) => ({
   payment_method_types: ['card'],
   status: 'succeeded',
   ...overrides,
-});
+}) as unknown as Stripe.PaymentIntent;
 
 describe('upsertPaymentIntent', () => {
   beforeEach(async () => {
