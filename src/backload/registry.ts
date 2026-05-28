@@ -20,6 +20,7 @@ import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote, upsertCreditNoteLine } from '../upserts/credit_notes';
 import { upsertCheckoutSession, upsertCheckoutSessionLine } from '../upserts/checkout_sessions';
 import { upsertPaymentMethod } from '../upserts/payment_methods';
+import { upsertTaxId } from '../upserts/tax_ids';
 import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
@@ -145,6 +146,12 @@ export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> =
     list: (s, parentId, c) =>
       (s as any).customers.listPaymentMethods(parentId, { limit: 100, starting_after: c ?? undefined }),
     upsert: (db, obj, ts) => upsertPaymentMethod(db, obj, ts),
+  },
+  tax_ids: {
+    parentResource: 'customers',
+    list: (s, parentId, c) =>
+      (s as any).customers.listTaxIds(parentId, { limit: 100, starting_after: c ?? undefined }),
+    upsert: (db, obj, ts) => upsertTaxId(db, obj, ts),
   },
   credit_note_line_items: {
     parentResource: 'credit_notes',

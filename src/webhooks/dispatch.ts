@@ -19,6 +19,7 @@ import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
 import { upsertCreditNote } from '../upserts/credit_notes';
 import { upsertCheckoutSession } from '../upserts/checkout_sessions';
 import { upsertPaymentMethod } from '../upserts/payment_methods';
+import { upsertTaxId } from '../upserts/tax_ids';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -48,6 +49,8 @@ const checkoutSessionHandler: Handler = async (db, obj, ts) => {
 };
 const paymentMethodHandler: Handler = (db, obj, ts) =>
   upsertPaymentMethod(db, obj as Stripe.PaymentMethod, ts);
+const taxIdHandler: Handler = (db, obj, ts) =>
+  upsertTaxId(db, obj as Stripe.TaxId, ts);
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -161,4 +164,8 @@ export const HANDLERS: Record<string, Handler> = {
   'payment_method.updated': paymentMethodHandler,
   'payment_method.automatically_updated': paymentMethodHandler,
   'payment_method.card_automatically_updated': paymentMethodHandler,
+
+  'customer.tax_id.created': taxIdHandler,
+  'customer.tax_id.updated': taxIdHandler,
+  'customer.tax_id.deleted': taxIdHandler,
 };
