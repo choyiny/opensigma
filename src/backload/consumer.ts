@@ -1,59 +1,10 @@
 import type Stripe from 'stripe';
-import { eq } from 'drizzle-orm';
-import type { Env, BackloadJob } from '../env';
+import { and, eq, sql } from 'drizzle-orm';
+import type { Env, BackloadJob, AccountListableResource, PerParentResource } from '../env';
 import { getDb, type DB } from '../db/client';
-import { backloadState } from '../db/schema';
+import { backloadState, backloadParentProgress } from '../db/schema';
 import { getStripe } from '../stripe';
-import { upsertCustomer } from '../upserts/customers';
-import { upsertProduct } from '../upserts/products';
-import { upsertPrice } from '../upserts/prices';
-import { upsertSubscription } from '../upserts/subscriptions';
-import { upsertInvoice } from '../upserts/invoices';
-import { upsertCharge } from '../upserts/charges';
-import { upsertPaymentIntent } from '../upserts/payment_intents';
-import { upsertRefund } from '../upserts/refunds';
-
-type Resource = BackloadJob['resource'];
-
-interface ResourceBinding {
-  list: (stripe: Stripe, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
-  upsert: (db: DB, obj: any, ts: number) => Promise<void>;
-}
-
-const RESOURCES: Record<Resource, ResourceBinding> = {
-  customers: {
-    list: (s, c) => s.customers.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertCustomer(db, obj, ts),
-  },
-  products: {
-    list: (s, c) => s.products.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertProduct(db, obj, ts),
-  },
-  prices: {
-    list: (s, c) => s.prices.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertPrice(db, obj, ts),
-  },
-  subscriptions: {
-    list: (s, c) => s.subscriptions.list({ limit: 100, starting_after: c ?? undefined, status: 'all' }) as any,
-    upsert: (db, obj, ts) => upsertSubscription(db, obj, ts),
-  },
-  invoices: {
-    list: (s, c) => s.invoices.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertInvoice(db, obj, ts),
-  },
-  charges: {
-    list: (s, c) => s.charges.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertCharge(db, obj, ts),
-  },
-  payment_intents: {
-    list: (s, c) => s.paymentIntents.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertPaymentIntent(db, obj, ts),
-  },
-  refunds: {
-    list: (s, c) => s.refunds.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertRefund(db, obj, ts),
-  },
-};
+import { ACCOUNT_RESOURCES, PER_PARENT_RESOURCES } from './registry';
 
 export async function processBackloadMessage(
   env: Env,
@@ -61,31 +12,98 @@ export async function processBackloadMessage(
   stripeOverride?: Stripe,
 ): Promise<void> {
   const db = getDb(env.DB);
-  const state = await db.select().from(backloadState).where(eq(backloadState.resource, job.resource)).get();
+  const stripe = stripeOverride ?? getStripe(env.STRIPE_API_KEY);
+  if (job.kind === 'page') {
+    await processAccountPage(db, env, stripe, job.resource, job.cursor);
+  } else {
+    await processChildPage(db, stripe, job.resource, job.parent_id, job.cursor, env);
+  }
+}
+
+async function processAccountPage(
+  db: DB,
+  env: Env,
+  stripe: Stripe,
+  resource: AccountListableResource,
+  cursor: string | null,
+): Promise<void> {
+  const state = await db.select().from(backloadState).where(eq(backloadState.resource, resource)).get();
   if (!state || state.status === 'done') return;
+
+  const binding = ACCOUNT_RESOURCES[resource];
+  if (!binding) throw new Error(`No registry entry for account resource ${resource}`);
 
   await db.update(backloadState)
     .set({ status: 'in_progress', updatedAt: Date.now() })
-    .where(eq(backloadState.resource, job.resource));
+    .where(eq(backloadState.resource, resource));
 
-  const binding = RESOURCES[job.resource];
-  const stripe = stripeOverride ?? getStripe(env.STRIPE_API_KEY);
-  const page = await binding.list(stripe, job.cursor);
-
+  const page = await binding.list(stripe, cursor);
   for (const obj of page.data) {
     await binding.upsert(db, obj, obj.created);
+    if (binding.onObject) await binding.onObject(db, obj);
   }
 
   if (page.has_more) {
-    const lastId = page.data[page.data.length - 1]?.id ?? job.cursor;
+    const lastId = page.data[page.data.length - 1]?.id ?? cursor;
     await db.update(backloadState)
       .set({ cursor: lastId, status: 'idle', updatedAt: Date.now(), lastSyncedAt: Date.now() })
-      .where(eq(backloadState.resource, job.resource));
-    await env.BACKLOAD_QUEUE.send({ resource: job.resource, cursor: lastId });
+      .where(eq(backloadState.resource, resource));
+    await env.BACKLOAD_QUEUE.send({ kind: 'page', resource, cursor: lastId });
   } else {
     await db.update(backloadState)
       .set({ cursor: null, status: 'done', updatedAt: Date.now(), lastSyncedAt: Date.now() })
-      .where(eq(backloadState.resource, job.resource));
+      .where(eq(backloadState.resource, resource));
+  }
+}
+
+async function processChildPage(
+  db: DB,
+  stripe: Stripe,
+  resource: PerParentResource,
+  parentId: string,
+  cursor: string | null,
+  env: Env,
+): Promise<void> {
+  const row = await db.select().from(backloadParentProgress)
+    .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)))
+    .get();
+  if (!row || row.status === 'done') return;
+
+  const binding = PER_PARENT_RESOURCES[resource];
+  if (!binding) throw new Error(`No registry entry for per-parent resource ${resource}`);
+
+  await db.update(backloadParentProgress)
+    .set({ status: 'in_progress', updatedAt: Date.now() })
+    .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)));
+
+  let page: { data: any[]; has_more: boolean };
+  try {
+    page = await binding.list(stripe, parentId, cursor);
+  } catch (err: any) {
+    // Parent gone — close out without DLQ noise.
+    if (err?.statusCode === 404 || err?.code === 'resource_missing') {
+      await db.update(backloadParentProgress)
+        .set({ status: 'done', cursor: null, updatedAt: Date.now() })
+        .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)));
+      return;
+    }
+    throw err;
+  }
+
+  for (const obj of page.data) {
+    await binding.upsert(db, obj, obj.created ?? Math.floor(Date.now() / 1000));
+  }
+
+  if (page.has_more) {
+    const lastId = page.data[page.data.length - 1]?.id ?? cursor;
+    await db.update(backloadParentProgress)
+      .set({ cursor: lastId, status: 'in_progress', updatedAt: Date.now() })
+      .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)));
+    await env.BACKLOAD_QUEUE.send({ kind: 'child-page', resource, parent_id: parentId, cursor: lastId });
+  } else {
+    await db.update(backloadParentProgress)
+      .set({ cursor: null, status: 'done', updatedAt: Date.now() })
+      .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)));
   }
 }
 

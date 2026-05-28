@@ -41,13 +41,13 @@ describe('processBackloadMessage', () => {
     const sent: any[] = [];
     const fakeEnv = { ...env, BACKLOAD_QUEUE: { send: async (m: unknown) => sent.push(m) } as any };
 
-    await processBackloadMessage(fakeEnv as any, { resource: 'customers', cursor: null }, fakeStripe);
+    await processBackloadMessage(fakeEnv as any, { kind: 'page', resource: 'customers', cursor: null }, fakeStripe);
 
     const db = getDb(env.DB);
     const state = await db.select().from(backloadState).where(eq(backloadState.resource, 'customers')).get();
     expect(state?.cursor).toBe('cus_b');
     expect(state?.status).toBe('idle');
-    expect(sent).toEqual([{ resource: 'customers', cursor: 'cus_b' }]);
+    expect(sent).toEqual([{ kind: 'page', resource: 'customers', cursor: 'cus_b' }]);
     expect((await db.select().from(customers).where(eq(customers.id, 'cus_a')).get())?.email).toBe('a@x');
   });
 
@@ -57,7 +57,7 @@ describe('processBackloadMessage', () => {
     const sent: any[] = [];
     const fakeEnv = { ...env, BACKLOAD_QUEUE: { send: async (m: unknown) => sent.push(m) } as any };
 
-    await processBackloadMessage(fakeEnv as any, { resource: 'customers', cursor: null }, fakeStripe);
+    await processBackloadMessage(fakeEnv as any, { kind: 'page', resource: 'customers', cursor: null }, fakeStripe);
     const db = getDb(env.DB);
     const state = await db.select().from(backloadState).where(eq(backloadState.resource, 'customers')).get();
     expect(state?.status).toBe('done');
@@ -83,7 +83,7 @@ describe('processBackloadMessage', () => {
     }));
 
     const fakeEnv = { ...env, BACKLOAD_QUEUE: { send: async () => {} } as any };
-    await processBackloadMessage(fakeEnv as any, { resource: 'customers', cursor: null }, fakeStripe);
+    await processBackloadMessage(fakeEnv as any, { kind: 'page', resource: 'customers', cursor: null }, fakeStripe);
 
     expect((await db.select().from(customers).where(eq(customers.id, 'cus_a')).get())?.email).toBe('webhook-fresh@x');
   });
