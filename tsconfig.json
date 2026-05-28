@@ -13,9 +13,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
+    "noEmit": true
   },
   "include": ["src/**/*", "test/**/*", "drizzle.config.ts", "vitest.config.ts"]
 }
