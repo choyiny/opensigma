@@ -20,7 +20,7 @@
     "stripe": "^22.2.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "workerd", "sharp"]
+    "onlyBuiltDependencies": ["esbuild", "workerd"]
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.10",
