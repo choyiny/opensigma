@@ -15,6 +15,7 @@ import { upsertSetupIntent } from '../upserts/setup_intents';
 import { upsertCoupon } from '../upserts/coupons';
 import { upsertPromotionCode } from '../upserts/promotion_codes';
 import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
+import { upsertReview } from '../upserts/reviews';
 
 export interface AccountListBinding {
   list: (stripe: Stripe, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
@@ -91,6 +92,10 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
   subscription_schedules: {
     list: (s, c) => s.subscriptionSchedules.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertSubscriptionSchedule(db, obj, ts),
+  },
+  reviews: {
+    list: (s, c) => s.reviews.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    upsert: (db, obj, ts) => upsertReview(db, obj, ts),
   },
   // disputes, payouts, credit_notes, checkout_sessions, setup_intents, coupons,
   // promotion_codes, subscription_schedules, reviews, early_fraud_warnings
