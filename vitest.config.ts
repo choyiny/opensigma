@@ -12,7 +12,7 @@ export default defineConfig({
         d1Databases: ['DB'],
         queueProducers: { BACKLOAD_QUEUE: 'stripe-sync-backload' },
         queueConsumers: ['stripe-sync-backload'],
-        bindings: { TEST_MIGRATIONS: migrations },
+        bindings: { TEST_MIGRATIONS: migrations, STRIPE_API_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_test' },
       },
     }),
   ],
