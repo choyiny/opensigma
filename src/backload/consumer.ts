@@ -40,7 +40,7 @@ async function processAccountPage(
   console.log(`[backload] endpoint=${resource} page=${cursor ?? 'first'}`);
   const page = await binding.list(stripe, cursor);
   for (const obj of page.data) {
-    await binding.upsert(db, obj, obj.created);
+    await binding.upsert(db, obj, obj.created, stripe);
     if (binding.onObject) await binding.onObject(db, obj);
   }
 
@@ -93,7 +93,7 @@ async function processChildPage(
   }
 
   for (const obj of page.data) {
-    await binding.upsert(db, obj, obj.created ?? Math.floor(Date.now() / 1000));
+    await binding.upsert(db, obj, obj.created ?? Math.floor(Date.now() / 1000), stripe);
   }
 
   if (page.has_more) {

@@ -2,6 +2,7 @@ import type Stripe from 'stripe';
 import { sql } from 'drizzle-orm';
 import type { DB } from '../db/client';
 import { checkoutSessions, checkoutSessionLineItems } from '../db/schema';
+import { upsertPrice } from './prices';
 
 const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : null);
 
@@ -91,12 +92,24 @@ export async function upsertCheckoutSession(
   });
 }
 
+export interface UpsertCheckoutSessionLineOpts {
+  stripe?: Stripe;
+}
+
 export async function upsertCheckoutSessionLine(
   db: DB,
   line: any,
   sessionId: string,
   eventCreated: number,
+  opts: UpsertCheckoutSessionLineOpts = {},
 ): Promise<void> {
+  // Stripe checkout line items return `price` as the full Price object.
+  // Upsert it (which cascades into product backfill) before persisting the
+  // line — closes gaps for ad-hoc products created via Payment Links.
+  if (line.price && typeof line.price === 'object' && line.price.id) {
+    await upsertPrice(db, line.price as Stripe.Price, eventCreated, { stripe: opts.stripe });
+  }
+
   const row = {
     id: line.id,
     object: line.object,
@@ -134,7 +147,7 @@ export async function upsertCheckoutSessionLines(
       { limit: 100, starting_after: cursor },
     );
     for (const line of page.data) {
-      await upsertCheckoutSessionLine(db, line, sessionId, eventCreated);
+      await upsertCheckoutSessionLine(db, line, sessionId, eventCreated, { stripe });
     }
     if (!page.has_more || page.data.length === 0) break;
     cursor = page.data[page.data.length - 1].id;

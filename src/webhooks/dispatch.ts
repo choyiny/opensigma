@@ -32,7 +32,8 @@ type Handler = (ctx: Ctx, obj: any, eventCreated: number) => Promise<void>;
 
 const customerHandler: Handler = ({ db }, obj, ts) => upsertCustomer(db, obj as Stripe.Customer, ts);
 const productHandler: Handler = ({ db }, obj, ts) => upsertProduct(db, obj as Stripe.Product, ts);
-const priceHandler: Handler = ({ db }, obj, ts) => upsertPrice(db, obj as Stripe.Price, ts);
+const priceHandler: Handler = ({ db, stripe }, obj, ts) =>
+  upsertPrice(db, obj as Stripe.Price, ts, { stripe });
 const subscriptionHandler: Handler = ({ db }, obj, ts) => upsertSubscription(db, obj as Stripe.Subscription, ts);
 const invoiceHandler: Handler = ({ db }, obj, ts) => upsertInvoice(db, obj as Stripe.Invoice, ts);
 const chargeHandler: Handler = ({ db }, obj, ts) => upsertCharge(db, obj as Stripe.Charge, ts);

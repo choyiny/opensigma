@@ -2,12 +2,34 @@ import type Stripe from 'stripe';
 import { lt } from 'drizzle-orm';
 import type { DB } from '../db/client';
 import { prices } from '../db/schema';
+import { upsertProduct } from './products';
+import { backfillProducts } from './backfill';
+
+export interface UpsertPriceOpts {
+  /**
+   * If provided, the referenced product is backfilled before upserting —
+   * closes gaps for ad-hoc products (created inline via
+   * `price_data.product_data`) that aren't returned by `Products.list`.
+   */
+  stripe?: Stripe;
+}
 
 export async function upsertPrice(
   db: DB,
   p: Stripe.Price,
   eventCreated: number,
+  opts: UpsertPriceOpts = {},
 ): Promise<void> {
+  // If the price's product is an expanded object, upsert it directly —
+  // saves an HTTP call. If it's a string ID and we have a Stripe client,
+  // retrieve+upsert any product not yet in the DB.
+  if (typeof p.product === 'object' && p.product && !(p.product as any).deleted) {
+    const prod = p.product as Stripe.Product;
+    await upsertProduct(db, prod, prod.created ?? eventCreated);
+  } else if (opts.stripe && typeof p.product === 'string') {
+    await backfillProducts(db, opts.stripe, [p.product], eventCreated);
+  }
+
   const row = {
     id: p.id,
     object: p.object,

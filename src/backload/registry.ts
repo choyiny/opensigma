@@ -26,7 +26,7 @@ import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
   list: (stripe: Stripe, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
-  upsert: (db: DB, obj: any, ts: number) => Promise<void>;
+  upsert: (db: DB, obj: any, ts: number, stripe?: Stripe) => Promise<void>;
   /**
    * Optional hook fired for every object on the page during backload.
    * Used by parents (customers, invoices, credit_notes, checkout_sessions)
@@ -40,7 +40,7 @@ export interface ChildListBinding {
    *  this child resource can flip to `done`. */
   parentResource: AccountListableResource;
   list: (stripe: Stripe, parentId: string, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
-  upsert: (db: DB, obj: any, ts: number) => Promise<void>;
+  upsert: (db: DB, obj: any, ts: number, stripe?: Stripe) => Promise<void>;
 }
 
 export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBinding> = {
@@ -60,7 +60,7 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
   },
   prices: {
     list: (s, c) => s.prices.list({ limit: 100, starting_after: c ?? undefined }) as any,
-    upsert: (db, obj, ts) => upsertPrice(db, obj, ts),
+    upsert: (db, obj, ts, stripe) => upsertPrice(db, obj, ts, { stripe }),
   },
   subscriptions: {
     list: (s, c) => s.subscriptions.list({ limit: 100, starting_after: c ?? undefined, status: 'all' }) as any,
@@ -181,7 +181,8 @@ export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> =
       for (const line of page.data) line.invoice = parentId;
       return page;
     },
-    upsert: (db, obj, ts) => upsertInvoiceLineItem(db, obj, (obj as any).invoice ?? '', ts),
+    upsert: (db, obj, ts, stripe) =>
+      upsertInvoiceLineItem(db, obj, (obj as any).invoice ?? '', ts, { stripe }),
   },
   checkout_session_line_items: {
     parentResource: 'checkout_sessions',
@@ -193,6 +194,7 @@ export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> =
       for (const line of page.data) line.checkout_session = parentId;
       return page;
     },
-    upsert: (db, obj, ts) => upsertCheckoutSessionLine(db, obj, (obj as any).checkout_session ?? '', ts),
+    upsert: (db, obj, ts, stripe) =>
+      upsertCheckoutSessionLine(db, obj, (obj as any).checkout_session ?? '', ts, { stripe }),
   },
 } as Record<PerParentResource, ChildListBinding>;

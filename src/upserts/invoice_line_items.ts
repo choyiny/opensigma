@@ -2,13 +2,31 @@ import type Stripe from 'stripe';
 import { sql } from 'drizzle-orm';
 import type { DB } from '../db/client';
 import { invoiceLineItems } from '../db/schema';
+import { backfillPrices } from './backfill';
+
+export interface UpsertInvoiceLineItemOpts {
+  /**
+   * If provided, the line item's referenced price is backfilled before
+   * upserting — closes gaps for ad-hoc prices/products (created inline via
+   * `price_data`) that aren't returned by `Prices.list` / `Products.list`.
+   */
+  stripe?: Stripe;
+}
 
 export async function upsertInvoiceLineItem(
   db: DB,
   line: any,
   invoiceId: string,
   eventCreated: number,
+  opts: UpsertInvoiceLineItemOpts = {},
 ): Promise<void> {
+  if (opts.stripe) {
+    const priceId = line?.pricing?.price_details?.price;
+    if (typeof priceId === 'string') {
+      await backfillPrices(db, opts.stripe, [priceId], eventCreated);
+    }
+  }
+
   const row = {
     id: line.id,
     object: line.object,
@@ -73,7 +91,7 @@ export async function upsertInvoiceLineItems(
       starting_after: cursor,
     });
     for (const line of page.data) {
-      await upsertInvoiceLineItem(db, line, invoiceId, eventCreated);
+      await upsertInvoiceLineItem(db, line, invoiceId, eventCreated, { stripe });
     }
     if (!page.has_more) break;
     cursor = page.data[page.data.length - 1]?.id;
