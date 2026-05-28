@@ -17,6 +17,8 @@ import { upsertPromotionCode } from '../upserts/promotion_codes';
 import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
+import { upsertCreditNote, upsertCreditNoteLine } from '../upserts/credit_notes';
+import { backloadParentProgress } from '../db/schema';
 
 export interface AccountListBinding {
   list: (stripe: Stripe, cursor: string | null) => Promise<{ data: any[]; has_more: boolean }>;
@@ -102,9 +104,33 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
     list: (s, c) => s.radar.earlyFraudWarnings.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertEarlyFraudWarning(db, obj, ts),
   },
-  // disputes, payouts, credit_notes, checkout_sessions, setup_intents, coupons,
-  // promotion_codes, subscription_schedules, reviews, early_fraud_warnings
-  // are added by their respective tasks in Phase C.
+  credit_notes: {
+    list: (s, c) => s.creditNotes.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    upsert: (db, obj, ts) => upsertCreditNote(db, obj, ts),
+    onObject: async (db, obj) => {
+      await db.insert(backloadParentProgress).values({
+        resource: 'credit_note_line_items',
+        parentId: obj.id,
+        status: 'idle',
+        updatedAt: Date.now(),
+      }).onConflictDoNothing();
+    },
+  },
+  // checkout_sessions, and remaining parent/child resources are added by their
+  // respective tasks in Phase C.
 } as Record<AccountListableResource, AccountListBinding>;
 
-export const PER_PARENT_RESOURCES = {} as Record<PerParentResource, ChildListBinding>;
+export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> = {
+  credit_note_line_items: {
+    parentResource: 'credit_notes',
+    list: async (s, parentId, c) => {
+      const page = await (s as any).creditNotes.listLines(parentId, {
+        limit: 100,
+        starting_after: c ?? undefined,
+      });
+      for (const line of page.data) line.credit_note = parentId;
+      return page;
+    },
+    upsert: (db, obj, ts) => upsertCreditNoteLine(db, obj, obj.credit_note ?? '', ts),
+  },
+} as Record<PerParentResource, ChildListBinding>;

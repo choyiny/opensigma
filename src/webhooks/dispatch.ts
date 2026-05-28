@@ -16,6 +16,7 @@ import { upsertPromotionCode } from '../upserts/promotion_codes';
 import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
+import { upsertCreditNote } from '../upserts/credit_notes';
 
 type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
 
@@ -35,6 +36,10 @@ const promotionCodeHandler: Handler = (db, obj, ts) => upsertPromotionCode(db, o
 const subscriptionScheduleHandler: Handler = (db, obj, ts) => upsertSubscriptionSchedule(db, obj as Stripe.SubscriptionSchedule, ts);
 const reviewHandler: Handler = (db, obj, ts) => upsertReview(db, obj as Stripe.Review, ts);
 const earlyFraudWarningHandler: Handler = (db, obj, ts) => upsertEarlyFraudWarning(db, obj as Stripe.Radar.EarlyFraudWarning, ts);
+const creditNoteHandler: Handler = async (db, obj, ts) => {
+  await upsertCreditNote(db, obj as Stripe.CreditNote, ts);
+  // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
+};
 
 export const HANDLERS: Record<string, Handler> = {
   'customer.created': customerHandler,
@@ -133,4 +138,8 @@ export const HANDLERS: Record<string, Handler> = {
 
   'radar.early_fraud_warning.created': earlyFraudWarningHandler,
   'radar.early_fraud_warning.updated': earlyFraudWarningHandler,
+
+  'credit_note.created': creditNoteHandler,
+  'credit_note.updated': creditNoteHandler,
+  'credit_note.voided': creditNoteHandler,
 };
