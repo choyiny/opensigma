@@ -28,7 +28,7 @@ export const scheduledHandler: ExportedHandlerScheduledHandler<Env> = async (_ct
   // 2) Enqueue child-page jobs for any idle per-parent rows.
   for (const resource of Object.keys(PER_PARENT_RESOURCES) as PerParentResource[]) {
     const idle = await db
-      .select({ parentId: backloadParentProgress.parentId })
+      .select({ parentId: backloadParentProgress.parentId, cursor: backloadParentProgress.cursor })
       .from(backloadParentProgress)
       .where(and(
         eq(backloadParentProgress.resource, resource),
@@ -41,7 +41,7 @@ export const scheduledHandler: ExportedHandlerScheduledHandler<Env> = async (_ct
         kind: 'child-page',
         resource,
         parent_id: row.parentId,
-        cursor: null,
+        cursor: row.cursor ?? null,
       });
     }
   }

@@ -37,6 +37,31 @@ describe('child-page flow', () => {
     expect((await db.select().from(paymentMethods).where(eq(paymentMethods.id, 'pm_a')).get())?.customer).toBe('cus_1');
   });
 
+  it('promotes per-parent backload_state from idle to in_progress when a child-page starts', async () => {
+    const stripe = fakeStripe([
+      { id: 'pm_a', object: 'payment_method', type: 'card', created: 1, customer: 'cus_1', livemode: false, metadata: {} },
+    ], true);
+    const fakeEnv = { ...env, BACKLOAD_QUEUE: { send: async () => {} } as any };
+    await processBackloadMessage(fakeEnv as any, { kind: 'child-page', resource: 'payment_methods', parent_id: 'cus_1', cursor: null }, stripe);
+    const db = getDb(env.DB);
+    const state = await db.select().from(backloadState).where(eq(backloadState.resource, 'payment_methods')).get();
+    expect(state?.status).toBe('in_progress');
+  });
+
+  it('does not downgrade per-parent backload_state from done back to in_progress', async () => {
+    const db = getDb(env.DB);
+    await db.update(backloadState)
+      .set({ status: 'done', updatedAt: Date.now() })
+      .where(eq(backloadState.resource, 'payment_methods'));
+    const stripe = fakeStripe([
+      { id: 'pm_a', object: 'payment_method', type: 'card', created: 1, customer: 'cus_1', livemode: false, metadata: {} },
+    ]);
+    const fakeEnv = { ...env, BACKLOAD_QUEUE: { send: async () => {} } as any };
+    await processBackloadMessage(fakeEnv as any, { kind: 'child-page', resource: 'payment_methods', parent_id: 'cus_1', cursor: null }, stripe);
+    const state = await db.select().from(backloadState).where(eq(backloadState.resource, 'payment_methods')).get();
+    expect(state?.status).toBe('done');
+  });
+
   it('cron flips per-parent resource to done when all parents done AND parent resource done', async () => {
     const db = getDb(env.DB);
     await db.update(backloadParentProgress).set({ status: 'done' }).where(eq(backloadParentProgress.resource, 'payment_methods'));

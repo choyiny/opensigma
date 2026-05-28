@@ -41,7 +41,7 @@ async function processAccountPage(
   const page = await binding.list(stripe, cursor);
   for (const obj of page.data) {
     await binding.upsert(db, obj, obj.created, stripe);
-    if (binding.onObject) await binding.onObject(db, obj);
+    if (binding.onObject) await binding.onObject(db, obj, stripe);
   }
 
   if (page.has_more) {
@@ -76,6 +76,9 @@ async function processChildPage(
   await db.update(backloadParentProgress)
     .set({ status: 'in_progress', updatedAt: Date.now() })
     .where(and(eq(backloadParentProgress.resource, resource), eq(backloadParentProgress.parentId, parentId)));
+  await db.update(backloadState)
+    .set({ status: 'in_progress', updatedAt: Date.now() })
+    .where(and(eq(backloadState.resource, resource), eq(backloadState.status, 'idle')));
 
   let page: { data: any[]; has_more: boolean };
   try {

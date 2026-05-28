@@ -30,9 +30,10 @@ export interface AccountListBinding {
   /**
    * Optional hook fired for every object on the page during backload.
    * Used by parents (customers, invoices, credit_notes, checkout_sessions)
-   * to seed backload_parent_progress rows for their child resources.
+   * to upsert any inline-expanded children and seed backload_parent_progress
+   * rows when the embedded child list reports has_more.
    */
-  onObject?: (db: DB, obj: any) => Promise<void>;
+  onObject?: (db: DB, obj: any, stripe: Stripe) => Promise<void>;
 }
 
 export interface ChildListBinding {
@@ -45,13 +46,33 @@ export interface ChildListBinding {
 
 export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBinding> = {
   customers: {
-    list: (s, c) => s.customers.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    list: (s, c) => s.customers.list({
+      limit: 100,
+      starting_after: c ?? undefined,
+      expand: ['data.tax_ids'],
+    }) as any,
     upsert: (db, obj, ts) => upsertCustomer(db, obj, ts),
     onObject: async (db, obj) => {
-      await db.insert(backloadParentProgress).values([
-        { resource: 'payment_methods', parentId: obj.id, status: 'idle', updatedAt: Date.now() },
-        { resource: 'tax_ids',         parentId: obj.id, status: 'idle', updatedAt: Date.now() },
-      ]).onConflictDoNothing();
+      // payment_methods isn't expandable on customer — always seed for fallback.
+      await db.insert(backloadParentProgress).values({
+        resource: 'payment_methods', parentId: obj.id, status: 'idle', updatedAt: Date.now(),
+      }).onConflictDoNothing();
+
+      const taxIdsField = (obj as any).tax_ids;
+      const data: any[] = taxIdsField?.data ?? [];
+      for (const t of data) {
+        await upsertTaxId(db, t, obj.created);
+      }
+      if (!taxIdsField || taxIdsField.has_more) {
+        const lastId = data.length > 0 ? data[data.length - 1].id : null;
+        await db.insert(backloadParentProgress).values({
+          resource: 'tax_ids',
+          parentId: obj.id,
+          cursor: lastId,
+          status: 'idle',
+          updatedAt: Date.now(),
+        }).onConflictDoNothing();
+      }
     },
   },
   products: {
@@ -67,12 +88,26 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
     upsert: (db, obj, ts) => upsertSubscription(db, obj, ts),
   },
   invoices: {
+    // `lines` is included by default on Invoice (first ~10 with has_more).
     list: (s, c) => s.invoices.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertInvoice(db, obj, ts),
-    onObject: async (db, obj) => {
-      await db.insert(backloadParentProgress).values({
-        resource: 'invoice_line_items', parentId: obj.id, status: 'idle', updatedAt: Date.now(),
-      }).onConflictDoNothing();
+    onObject: async (db, obj, stripe) => {
+      const lines = (obj as any).lines;
+      const data: any[] = lines?.data ?? [];
+      for (const line of data) {
+        await upsertInvoiceLineItem(db, line, obj.id, obj.created, { stripe });
+      }
+      // Only seed the per-parent fallback when there are more pages to fetch.
+      if (!lines || lines.has_more) {
+        const lastId = data.length > 0 ? data[data.length - 1].id : null;
+        await db.insert(backloadParentProgress).values({
+          resource: 'invoice_line_items',
+          parentId: obj.id,
+          cursor: lastId,
+          status: 'idle',
+          updatedAt: Date.now(),
+        }).onConflictDoNothing();
+      }
     },
   },
   charges: {
@@ -120,27 +155,53 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
     upsert: (db, obj, ts) => upsertEarlyFraudWarning(db, obj, ts),
   },
   credit_notes: {
-    list: (s, c) => s.creditNotes.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    list: (s, c) => s.creditNotes.list({
+      limit: 100,
+      starting_after: c ?? undefined,
+      expand: ['data.lines'],
+    }) as any,
     upsert: (db, obj, ts) => upsertCreditNote(db, obj, ts),
     onObject: async (db, obj) => {
-      await db.insert(backloadParentProgress).values({
-        resource: 'credit_note_line_items',
-        parentId: obj.id,
-        status: 'idle',
-        updatedAt: Date.now(),
-      }).onConflictDoNothing();
+      const lines = (obj as any).lines;
+      const data: any[] = lines?.data ?? [];
+      for (const line of data) {
+        await upsertCreditNoteLine(db, line, obj.id, obj.created);
+      }
+      if (!lines || lines.has_more) {
+        const lastId = data.length > 0 ? data[data.length - 1].id : null;
+        await db.insert(backloadParentProgress).values({
+          resource: 'credit_note_line_items',
+          parentId: obj.id,
+          cursor: lastId,
+          status: 'idle',
+          updatedAt: Date.now(),
+        }).onConflictDoNothing();
+      }
     },
   },
   checkout_sessions: {
-    list: (s, c) => s.checkout.sessions.list({ limit: 100, starting_after: c ?? undefined }) as any,
+    list: (s, c) => s.checkout.sessions.list({
+      limit: 100,
+      starting_after: c ?? undefined,
+      expand: ['data.line_items'],
+    }) as any,
     upsert: (db, obj, ts) => upsertCheckoutSession(db, obj, ts),
-    onObject: async (db, obj) => {
-      await db.insert(backloadParentProgress).values({
-        resource: 'checkout_session_line_items',
-        parentId: obj.id,
-        status: 'idle',
-        updatedAt: Date.now(),
-      }).onConflictDoNothing();
+    onObject: async (db, obj, stripe) => {
+      const lines = (obj as any).line_items;
+      const data: any[] = lines?.data ?? [];
+      for (const line of data) {
+        await upsertCheckoutSessionLine(db, line, obj.id, obj.created, { stripe });
+      }
+      if (!lines || lines.has_more) {
+        const lastId = data.length > 0 ? data[data.length - 1].id : null;
+        await db.insert(backloadParentProgress).values({
+          resource: 'checkout_session_line_items',
+          parentId: obj.id,
+          cursor: lastId,
+          status: 'idle',
+          updatedAt: Date.now(),
+        }).onConflictDoNothing();
+      }
     },
   },
   // Remaining parent/child resources are added by their respective tasks in Phase C.
