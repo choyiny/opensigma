@@ -48,7 +48,7 @@ app.post('/webhooks/stripe', async (c) => {
   }
 
   try {
-    await handler(db, event.data.object, event.created);
+    await handler({ db, stripe, env: c.env }, event.data.object, event.created);
   } catch (err) {
     console.log(JSON.stringify({ level: 'error', msg: 'handler_failed', type: event.type, id: event.id, err: String(err) }));
     return c.text('handler error', 500);

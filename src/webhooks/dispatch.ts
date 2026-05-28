@@ -1,5 +1,6 @@
 import type Stripe from 'stripe';
 import type { DB } from '../db/client';
+import type { Env } from '../env';
 import { upsertCustomer } from '../upserts/customers';
 import { upsertProduct } from '../upserts/products';
 import { upsertPrice } from '../upserts/prices';
@@ -16,40 +17,46 @@ import { upsertPromotionCode } from '../upserts/promotion_codes';
 import { upsertSubscriptionSchedule } from '../upserts/subscription_schedules';
 import { upsertReview } from '../upserts/reviews';
 import { upsertEarlyFraudWarning } from '../upserts/early_fraud_warnings';
-import { upsertCreditNote } from '../upserts/credit_notes';
-import { upsertCheckoutSession } from '../upserts/checkout_sessions';
+import { upsertCreditNote, upsertCreditNoteLines } from '../upserts/credit_notes';
+import { upsertCheckoutSession, upsertCheckoutSessionLines } from '../upserts/checkout_sessions';
 import { upsertPaymentMethod } from '../upserts/payment_methods';
 import { upsertTaxId } from '../upserts/tax_ids';
 
-type Handler = (db: DB, obj: any, eventCreated: number) => Promise<void>;
+export interface Ctx {
+  db: DB;
+  stripe: Stripe;
+  env: Env;
+}
 
-const customerHandler: Handler = (db, obj, ts) => upsertCustomer(db, obj as Stripe.Customer, ts);
-const productHandler: Handler = (db, obj, ts) => upsertProduct(db, obj as Stripe.Product, ts);
-const priceHandler: Handler = (db, obj, ts) => upsertPrice(db, obj as Stripe.Price, ts);
-const subscriptionHandler: Handler = (db, obj, ts) => upsertSubscription(db, obj as Stripe.Subscription, ts);
-const invoiceHandler: Handler = (db, obj, ts) => upsertInvoice(db, obj as Stripe.Invoice, ts);
-const chargeHandler: Handler = (db, obj, ts) => upsertCharge(db, obj as Stripe.Charge, ts);
-const paymentIntentHandler: Handler = (db, obj, ts) => upsertPaymentIntent(db, obj as Stripe.PaymentIntent, ts);
-const refundHandler: Handler = (db, obj, ts) => upsertRefund(db, obj as Stripe.Refund, ts);
-const disputeHandler: Handler = (db, obj, ts) => upsertDispute(db, obj as Stripe.Dispute, ts);
-const payoutHandler: Handler = (db, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
-const setupIntentHandler: Handler = (db, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
-const couponHandler: Handler = (db, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
-const promotionCodeHandler: Handler = (db, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
-const subscriptionScheduleHandler: Handler = (db, obj, ts) => upsertSubscriptionSchedule(db, obj as Stripe.SubscriptionSchedule, ts);
-const reviewHandler: Handler = (db, obj, ts) => upsertReview(db, obj as Stripe.Review, ts);
-const earlyFraudWarningHandler: Handler = (db, obj, ts) => upsertEarlyFraudWarning(db, obj as Stripe.Radar.EarlyFraudWarning, ts);
-const creditNoteHandler: Handler = async (db, obj, ts) => {
+type Handler = (ctx: Ctx, obj: any, eventCreated: number) => Promise<void>;
+
+const customerHandler: Handler = ({ db }, obj, ts) => upsertCustomer(db, obj as Stripe.Customer, ts);
+const productHandler: Handler = ({ db }, obj, ts) => upsertProduct(db, obj as Stripe.Product, ts);
+const priceHandler: Handler = ({ db }, obj, ts) => upsertPrice(db, obj as Stripe.Price, ts);
+const subscriptionHandler: Handler = ({ db }, obj, ts) => upsertSubscription(db, obj as Stripe.Subscription, ts);
+const invoiceHandler: Handler = ({ db }, obj, ts) => upsertInvoice(db, obj as Stripe.Invoice, ts);
+const chargeHandler: Handler = ({ db }, obj, ts) => upsertCharge(db, obj as Stripe.Charge, ts);
+const paymentIntentHandler: Handler = ({ db }, obj, ts) => upsertPaymentIntent(db, obj as Stripe.PaymentIntent, ts);
+const refundHandler: Handler = ({ db }, obj, ts) => upsertRefund(db, obj as Stripe.Refund, ts);
+const disputeHandler: Handler = ({ db }, obj, ts) => upsertDispute(db, obj as Stripe.Dispute, ts);
+const payoutHandler: Handler = ({ db }, obj, ts) => upsertPayout(db, obj as Stripe.Payout, ts);
+const setupIntentHandler: Handler = ({ db }, obj, ts) => upsertSetupIntent(db, obj as Stripe.SetupIntent, ts);
+const couponHandler: Handler = ({ db }, obj, ts) => upsertCoupon(db, obj as Stripe.Coupon, ts);
+const promotionCodeHandler: Handler = ({ db }, obj, ts) => upsertPromotionCode(db, obj as Stripe.PromotionCode, ts);
+const subscriptionScheduleHandler: Handler = ({ db }, obj, ts) => upsertSubscriptionSchedule(db, obj as Stripe.SubscriptionSchedule, ts);
+const reviewHandler: Handler = ({ db }, obj, ts) => upsertReview(db, obj as Stripe.Review, ts);
+const earlyFraudWarningHandler: Handler = ({ db }, obj, ts) => upsertEarlyFraudWarning(db, obj as Stripe.Radar.EarlyFraudWarning, ts);
+const creditNoteHandler: Handler = async ({ db, stripe }, obj, ts) => {
   await upsertCreditNote(db, obj as Stripe.CreditNote, ts);
-  // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
+  await upsertCreditNoteLines(stripe, db, (obj as Stripe.CreditNote).id, ts);
 };
-const checkoutSessionHandler: Handler = async (db, obj, ts) => {
+const checkoutSessionHandler: Handler = async ({ db, stripe }, obj, ts) => {
   await upsertCheckoutSession(db, obj as Stripe.Checkout.Session, ts);
-  // Child re-fetch is wired in Task 21 once dispatch can access env/stripe.
+  await upsertCheckoutSessionLines(stripe, db, (obj as Stripe.Checkout.Session).id, ts);
 };
-const paymentMethodHandler: Handler = (db, obj, ts) =>
+const paymentMethodHandler: Handler = ({ db }, obj, ts) =>
   upsertPaymentMethod(db, obj as Stripe.PaymentMethod, ts);
-const taxIdHandler: Handler = (db, obj, ts) =>
+const taxIdHandler: Handler = ({ db }, obj, ts) =>
   upsertTaxId(db, obj as Stripe.TaxId, ts);
 
 export const HANDLERS: Record<string, Handler> = {
