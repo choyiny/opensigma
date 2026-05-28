@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 
 export const stripeEvents = sqliteTable(
   'stripe_events',
@@ -102,4 +102,77 @@ export const prices = sqliteTable(
     lastEventAt: integer('last_event_at').notNull().default(0),
   },
   (t) => ({ productIdx: index('idx_prices_product').on(t.product) }),
+);
+
+export const subscriptions = sqliteTable(
+  'subscriptions',
+  {
+    id: text('id').primaryKey(),
+    object: text('object'),
+    application: text('application'),
+    applicationFeePercent: real('application_fee_percent'),
+    automaticTax: text('automatic_tax', { mode: 'json' }),
+    billingCycleAnchor: integer('billing_cycle_anchor'),
+    billingThresholds: text('billing_thresholds', { mode: 'json' }),
+    cancelAt: integer('cancel_at'),
+    cancelAtPeriodEnd: integer('cancel_at_period_end', { mode: 'boolean' }),
+    canceledAt: integer('canceled_at'),
+    cancellationDetails: text('cancellation_details', { mode: 'json' }),
+    collectionMethod: text('collection_method'),
+    created: integer('created'),
+    currency: text('currency'),
+    currentPeriodEnd: integer('current_period_end'),
+    currentPeriodStart: integer('current_period_start'),
+    customer: text('customer'),
+    daysUntilDue: integer('days_until_due'),
+    defaultPaymentMethod: text('default_payment_method'),
+    defaultSource: text('default_source'),
+    defaultTaxRates: text('default_tax_rates', { mode: 'json' }),
+    description: text('description'),
+    discount: text('discount', { mode: 'json' }),
+    endedAt: integer('ended_at'),
+    latestInvoice: text('latest_invoice'),
+    livemode: integer('livemode', { mode: 'boolean' }),
+    metadata: text('metadata', { mode: 'json' }),
+    nextPendingInvoiceItemInvoice: integer('next_pending_invoice_item_invoice'),
+    onBehalfOf: text('on_behalf_of'),
+    pauseCollection: text('pause_collection', { mode: 'json' }),
+    paymentSettings: text('payment_settings', { mode: 'json' }),
+    pendingInvoiceItemInterval: text('pending_invoice_item_interval', { mode: 'json' }),
+    pendingSetupIntent: text('pending_setup_intent'),
+    pendingUpdate: text('pending_update', { mode: 'json' }),
+    schedule: text('schedule'),
+    startDate: integer('start_date'),
+    status: text('status'),
+    testClock: text('test_clock'),
+    transferData: text('transfer_data', { mode: 'json' }),
+    trialEnd: integer('trial_end'),
+    trialSettings: text('trial_settings', { mode: 'json' }),
+    trialStart: integer('trial_start'),
+    lastEventAt: integer('last_event_at').notNull().default(0),
+  },
+  (t) => ({
+    customerIdx: index('idx_subscriptions_customer').on(t.customer),
+    statusIdx: index('idx_subscriptions_status').on(t.status),
+  }),
+);
+
+export const subscriptionItems = sqliteTable(
+  'subscription_items',
+  {
+    id: text('id').primaryKey(),
+    object: text('object'),
+    billingThresholds: text('billing_thresholds', { mode: 'json' }),
+    created: integer('created'),
+    metadata: text('metadata', { mode: 'json' }),
+    price: text('price'),
+    quantity: integer('quantity'),
+    subscription: text('subscription'),
+    taxRates: text('tax_rates', { mode: 'json' }),
+    lastEventAt: integer('last_event_at').notNull().default(0),
+  },
+  (t) => ({
+    subscriptionIdx: index('idx_subscription_items_subscription').on(t.subscription),
+    priceIdx: index('idx_subscription_items_price').on(t.price),
+  }),
 );
