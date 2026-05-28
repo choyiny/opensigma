@@ -28,25 +28,6 @@ const stripeInvoice = (overrides: Partial<any> = {}): Stripe.Invoice => (({
   starting_balance: 0,
   subtotal: 1000,
   total: 1000,
-  lines: {
-    object: 'list',
-    data: [
-      {
-        id: 'il_test_1',
-        object: 'line_item',
-        amount: 1000,
-        currency: 'usd',
-        discountable: true,
-        invoice: 'in_test_1',
-        livemode: false,
-        metadata: {},
-        proration: false,
-        quantity: 1,
-        type: 'invoiceitem',
-      },
-    ],
-    has_more: false,
-  },
   ...overrides,
 }) as unknown as Stripe.Invoice);
 
@@ -57,13 +38,11 @@ describe('upsertInvoice', () => {
     await db.delete(invoiceLineItems);
   });
 
-  it('inserts invoice and its line items', async () => {
+  it('inserts invoice', async () => {
     const db = getDb(env.DB);
     await upsertInvoice(db, stripeInvoice(), 1700000100);
     const inv = await db.select().from(invoices).where(eq(invoices.id, 'in_test_1')).get();
-    const line = await db.select().from(invoiceLineItems).where(eq(invoiceLineItems.id, 'il_test_1')).get();
     expect(inv?.status).toBe('open');
-    expect(line?.invoice).toBe('in_test_1');
   });
 
   it('freshness guard applies', async () => {

@@ -6,6 +6,7 @@ import { upsertProduct } from '../upserts/products';
 import { upsertPrice } from '../upserts/prices';
 import { upsertSubscription } from '../upserts/subscriptions';
 import { upsertInvoice } from '../upserts/invoices';
+import { upsertInvoiceLineItem } from '../upserts/invoice_line_items';
 import { upsertCharge } from '../upserts/charges';
 import { upsertPaymentIntent } from '../upserts/payment_intents';
 import { upsertRefund } from '../upserts/refunds';
@@ -68,6 +69,11 @@ export const ACCOUNT_RESOURCES: Record<AccountListableResource, AccountListBindi
   invoices: {
     list: (s, c) => s.invoices.list({ limit: 100, starting_after: c ?? undefined }) as any,
     upsert: (db, obj, ts) => upsertInvoice(db, obj, ts),
+    onObject: async (db, obj) => {
+      await db.insert(backloadParentProgress).values({
+        resource: 'invoice_line_items', parentId: obj.id, status: 'idle', updatedAt: Date.now(),
+      }).onConflictDoNothing();
+    },
   },
   charges: {
     list: (s, c) => s.charges.list({ limit: 100, starting_after: c ?? undefined }) as any,
@@ -164,6 +170,18 @@ export const PER_PARENT_RESOURCES: Record<PerParentResource, ChildListBinding> =
       return page;
     },
     upsert: (db, obj, ts) => upsertCreditNoteLine(db, obj, obj.credit_note ?? '', ts),
+  },
+  invoice_line_items: {
+    parentResource: 'invoices',
+    list: async (s, parentId, c) => {
+      const page = await (s as any).invoices.listLineItems(parentId, {
+        limit: 100,
+        starting_after: c ?? undefined,
+      });
+      for (const line of page.data) line.invoice = parentId;
+      return page;
+    },
+    upsert: (db, obj, ts) => upsertInvoiceLineItem(db, obj, (obj as any).invoice ?? '', ts),
   },
   checkout_session_line_items: {
     parentResource: 'checkout_sessions',

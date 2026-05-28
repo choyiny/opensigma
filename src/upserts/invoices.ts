@@ -1,7 +1,7 @@
 import type Stripe from 'stripe';
 import { sql } from 'drizzle-orm';
 import type { DB } from '../db/client';
-import { invoices, invoiceLineItems } from '../db/schema';
+import { invoices } from '../db/schema';
 
 const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : null);
 
@@ -170,56 +170,4 @@ export async function upsertInvoice(
     },
     setWhere: sql`invoices.last_event_at < ${eventCreated}`,
   });
-
-  for (const line of inv.lines?.data ?? []) {
-    const lineRow = {
-      id: line.id,
-      object: line.object,
-      amount: line.amount,
-      currency: line.currency,
-      description: line.description ?? null,
-      discountAmounts: line.discount_amounts ?? null,
-      discountable: line.discountable,
-      discounts: line.discounts ?? null,
-      invoice: inv.id,
-      livemode: line.livemode,
-      metadata: line.metadata ?? null,
-      parent: line.parent ?? null,
-      period: line.period ?? null,
-      pretaxCreditAmounts: line.pretax_credit_amounts ?? null,
-      pricing: line.pricing ?? null,
-      quantity: line.quantity ?? null,
-      quantityDecimal: line.quantity_decimal == null ? null : String(line.quantity_decimal),
-      subscription: typeof line.subscription === 'string' ? line.subscription : null,
-      subtotal: line.subtotal,
-      taxes: line.taxes ?? null,
-      lastEventAt: eventCreated,
-    };
-    await db.insert(invoiceLineItems).values(lineRow).onConflictDoUpdate({
-      target: invoiceLineItems.id,
-      set: {
-        object: sql`excluded.object`,
-        amount: sql`excluded.amount`,
-        currency: sql`excluded.currency`,
-        description: sql`excluded.description`,
-        discountAmounts: sql`excluded.discount_amounts`,
-        discountable: sql`excluded.discountable`,
-        discounts: sql`excluded.discounts`,
-        invoice: sql`excluded.invoice`,
-        livemode: sql`excluded.livemode`,
-        metadata: sql`excluded.metadata`,
-        parent: sql`excluded.parent`,
-        period: sql`excluded.period`,
-        pretaxCreditAmounts: sql`excluded.pretax_credit_amounts`,
-        pricing: sql`excluded.pricing`,
-        quantity: sql`excluded.quantity`,
-        quantityDecimal: sql`excluded.quantity_decimal`,
-        subscription: sql`excluded.subscription`,
-        subtotal: sql`excluded.subtotal`,
-        taxes: sql`excluded.taxes`,
-        lastEventAt: sql`excluded.last_event_at`,
-      },
-      setWhere: sql`invoice_line_items.last_event_at < ${eventCreated}`,
-    });
-  }
 }
