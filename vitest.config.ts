@@ -7,7 +7,7 @@ const migrations = await readD1Migrations(path.join(__dirname, 'drizzle'));
 export default defineConfig({
   plugins: [
     cloudflareTest({
-      wrangler: { configPath: './wrangler.toml' },
+      wrangler: { configPath: './wrangler.jsonc' },
       miniflare: {
         d1Databases: ['DB'],
         queueProducers: { BACKLOAD_QUEUE: 'stripe-sync-backload' },

@@ -14,9 +14,12 @@ Mirrors a Stripe account into a Cloudflare D1 database. Replicates the core beha
 ```bash
 pnpm install
 
+# Copy the example config (wrangler.jsonc is gitignored)
+cp wrangler.jsonc.example wrangler.jsonc
+
 # Create the D1 database
 wrangler d1 create stripe_sync
-# Paste the printed database_id into wrangler.toml
+# Paste the printed database_id into wrangler.jsonc
 
 # Create the queues
 wrangler queues create stripe-sync-backload

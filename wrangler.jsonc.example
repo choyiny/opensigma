@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stripe-to-workers",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stripe_sync",
+      "database_id": "REPLACE_AFTER_D1_CREATE",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "BACKLOAD_QUEUE",
+        "queue": "stripe-sync-backload"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "stripe-sync-backload",
+        "max_batch_size": 1,
+        "max_concurrency": 1,
+        "max_retries": 3,
+        "dead_letter_queue": "stripe-sync-dlq"
+      }
+    ]
+  },
+  "triggers": {
+    "crons": ["0 * * * *"]
+  }
+}
