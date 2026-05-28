@@ -1,6 +1,6 @@
 // test/upserts/customers.test.ts
-import { env, applyD1Migrations } from 'cloudflare:test';
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { env } from 'cloudflare:test';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { getDb } from '../../src/db/client';
 import { customers } from '../../src/db/schema';
@@ -18,10 +18,6 @@ const stripeCustomer = (overrides: Partial<any> = {}) => ({
 });
 
 describe('upsertCustomer', () => {
-  beforeAll(async () => {
-    await applyD1Migrations(env.DB, env.TEST_MIGRATIONS as any);
-  });
-
   beforeEach(async () => {
     const db = getDb(env.DB);
     await db.delete(customers);
