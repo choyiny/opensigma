@@ -1,12 +1,12 @@
-# stripe-to-workers
+# opensigma
 
 A **free, open-source replacement for [Stripe Sigma](https://stripe.com/sigma) and [Stripe Data Pipeline](https://stripe.com/data-pipeline)** that mirrors your Stripe account into a Cloudflare D1 database. Query your own data, build dashboards, run analytics — no extra Stripe fees, no Snowflake/Redshift contract required.
 
 Replicates the core behavior of [stripe/sync-engine](https://github.com/stripe/sync-engine), but runs entirely on Cloudflare Workers + D1 + Queues instead of Postgres + a long-lived server.
 
-## stripe-to-workers vs Sigma vs Data Pipeline
+## opensigma vs Sigma vs Data Pipeline
 
-| | **stripe-to-workers** | Stripe Sigma | Stripe Data Pipeline |
+| | **opensigma** | Stripe Sigma | Stripe Data Pipeline |
 |---|---|---|---|
 | **Price** | **$0** (Cloudflare free tier covers most accounts) | ~CA$21/mo (250 charges) → CA$621+/mo (25k+ charges) | ~CA$69/mo → CA$759+/mo, **plus** what you already pay for the warehouse |
 | **Where the data lives** | Your D1 database (SQLite, you own it) | Stripe's servers — dashboard-only access | Snowflake / Redshift / Databricks / S3 / GCS / Azure (you provision and pay) |
@@ -57,7 +57,7 @@ If you just want to JOIN your invoices against your customers, rank top products
 
 ## Stripe restricted API key
 
-Create a **read-only restricted key** at [dashboard.stripe.com/apikeys/create?name=stripe-to-workers](https://dashboard.stripe.com/apikeys/create?name=stripe-to-workers).
+Create a **read-only restricted key** at [dashboard.stripe.com/apikeys/create?name=opensigma](https://dashboard.stripe.com/apikeys/create?name=opensigma).
 
 You want **Read** access on **every resource**, not just Billing Core — this project syncs charges, payouts, balance transactions, disputes, checkout sessions, payment methods, radar, etc. The fastest way:
 
