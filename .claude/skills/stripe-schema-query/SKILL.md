@@ -59,6 +59,31 @@ When a phrase maps approximately (no clean Stripe equivalent), **say so out loud
 
 If "segment" is unqualified, ask the user which they mean.
 
+#### Identifying a "customer" when no Customer object exists
+Guest-checkout-heavy datasets often have an empty `customers` table and no `customer` value on `charges`, `payment_intents`, or `checkout_sessions`. Before grouping by customer, **check fill rates** on each candidate field — don't assume `customers.id` works. In this project's data, the reliable email key is on the charge itself:
+
+- **First choice:** `charges.receipt_email`
+- **Fallback:** `json_extract(charges.billing_details, '$.email')`
+- **Avoid:** `checkout_sessions.customer_email` — sparsely populated; misses ~95% of paid sessions and silently drops top spenders.
+
+Canonical pattern:
+
+```sql
+COALESCE(charges.receipt_email, json_extract(charges.billing_details, '$.email')) AS customer_email
+```
+
+Diagnostic to run when a customer query returns empty or surprisingly small results:
+
+```sql
+SELECT
+  SUM(CASE WHEN customer IS NOT NULL THEN 1 END)        AS has_customer_id,
+  SUM(CASE WHEN receipt_email IS NOT NULL THEN 1 END)   AS has_receipt_email,
+  SUM(CASE WHEN json_extract(billing_details, '$.email') IS NOT NULL THEN 1 END) AS has_billing_email
+FROM charges WHERE status = 'succeeded';
+```
+
+Whichever column has the highest fill rate is your customer key. State the proxy out loud in your reply.
+
 ### In-store vs online
 Stripe Terminal transactions surface as `payment_method_details.type = 'card_present'` on `charges`. Everything else (`card`, `link`, `us_bank_account`, …) is online. **Use this as the proxy and say so.**
 
