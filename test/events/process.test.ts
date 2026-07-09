@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '../../src/db/client';
 import { stripeEvents, customers } from '../../src/db/schema';
 import { processEvent, type StripeEventLike } from '../../src/events/process';
+import { HANDLERS } from '../../src/webhooks/dispatch';
 
 function ctx() {
   return { db: getDb(env.DB), stripe: {} as any, env: env as any };
@@ -52,5 +53,17 @@ describe('processEvent', () => {
     const db = getDb(env.DB);
     expect((await db.select().from(stripeEvents).where(eq(stripeEvents.id, 'evt_unknown')).get())?.type).toBe('totally.unknown');
     expect((await db.select().from(customers).where(eq(customers.id, 'cus_p1')).get())).toBeUndefined();
+  });
+
+  it('does not record the event when the handler throws, so a retry re-dispatches', async () => {
+    const db = getDb(env.DB);
+    HANDLERS['test.throws'] = async () => { throw new Error('boom'); };
+    try {
+      const ev = customerEvent({ id: 'evt_throw', type: 'test.throws' });
+      await expect(processEvent(ctx(), ev)).rejects.toThrow('boom');
+      expect((await db.select().from(stripeEvents).where(eq(stripeEvents.id, 'evt_throw')).get())).toBeUndefined();
+    } finally {
+      delete HANDLERS['test.throws'];
+    }
   });
 });
