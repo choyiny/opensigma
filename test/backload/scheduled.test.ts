@@ -26,6 +26,7 @@ describe('scheduled handler', () => {
     };
     await scheduledHandler(createScheduledController(), fakeEnv as any, {} as any);
     expect(sent).toEqual([
+      { kind: 'events' },
       { kind: 'page', resource: 'customers', cursor: null },
       { kind: 'page', resource: 'prices', cursor: 'price_abc' },
     ]);
