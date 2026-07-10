@@ -1,6 +1,7 @@
 import type Stripe from 'stripe';
 import { and, eq } from 'drizzle-orm';
 import type { Env, BackloadJob, AccountListableResource, PerParentResource } from '../env';
+import { processEventsPoll } from '../events/poll';
 import { getDb, type DB } from '../db/client';
 import { backloadState, backloadParentProgress } from '../db/schema';
 import { getStripe } from '../stripe';
@@ -15,8 +16,10 @@ export async function processBackloadMessage(
   const stripe = stripeOverride ?? getStripe(env.STRIPE_API_KEY);
   if (job.kind === 'page') {
     await processAccountPage(db, env, stripe, job.resource, job.cursor);
-  } else {
+  } else if (job.kind === 'child-page') {
     await processChildPage(db, stripe, job.resource, job.parent_id, job.cursor, env);
+  } else {
+    await processEventsPoll(db, env, stripe);
   }
 }
 

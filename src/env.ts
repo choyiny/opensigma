@@ -20,4 +20,5 @@ export type PerParentResource =
 
 export type BackloadJob =
   | { kind: 'page'; resource: AccountListableResource; cursor: string | null }
-  | { kind: 'child-page'; resource: PerParentResource; parent_id: string; cursor: string | null };
+  | { kind: 'child-page'; resource: PerParentResource; parent_id: string; cursor: string | null }
+  | { kind: 'events' };

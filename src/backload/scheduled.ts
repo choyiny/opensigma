@@ -9,6 +9,10 @@ const CHILD_PAGE_BATCH_CAP = 500;
 export const scheduledHandler: ExportedHandlerScheduledHandler<Env> = async (_ctrl, env, _ctx) => {
   const db = getDb(env.DB);
 
+  // 0) Enqueue the incremental event-polling backstop. Runs every cron tick,
+  //    independent of object-backload progress.
+  await env.BACKLOAD_QUEUE.send({ kind: 'events' });
+
   // 1) Enqueue page jobs for account-listable resources still in progress.
   const accountRows = await db
     .select({ resource: backloadState.resource, cursor: backloadState.cursor })
