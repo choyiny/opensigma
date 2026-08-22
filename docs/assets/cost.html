@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>opensigma — cost by charge volume</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#FAFAFA; color:#0A0A0A; }
+  body { font-family:'Geist', system-ui, sans-serif; padding:40px; }
+  .eyebrow { font-family:'Geist Mono', monospace; font-size:12px; letter-spacing:0.16em;
+             text-transform:uppercase; color:#6B6B6B; margin:0 0 8px; }
+  h1 { font-family:'Instrument Serif', serif; font-weight:400; font-size:28px; margin:0 0 24px; }
+  svg { display:block; width:100%; height:auto; max-width:1000px; }
+</style>
+</head>
+<body>
+<p class="eyebrow">opensigma</p>
+<h1>What the same data costs</h1>
+<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cost-title cost-desc">
+  <title id="cost-title">Monthly cost by charge volume</title>
+  <desc id="cost-desc">A line chart comparing monthly cost against charge volume: opensigma stays flat at zero while Stripe Sigma reaches about CA$2,721 and Stripe Data Pipeline about CA$3,309 per month at 100,000 charges.</desc>
+  <rect width="100%" height="100%" fill="#FAFAFA"/>
+  <line x1="80" y1="420.0" x2="872" y2="420.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="424.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">0</text>
+  <line x1="80" y1="344.0" x2="872" y2="344.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="348.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">700</text>
+  <line x1="80" y1="268.0" x2="872" y2="268.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="272.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">1,400</text>
+  <line x1="80" y1="192.0" x2="872" y2="192.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="196.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">2,100</text>
+  <line x1="80" y1="116.0" x2="872" y2="116.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="120.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">2,800</text>
+  <line x1="80" y1="40.0" x2="872" y2="40.0" stroke="rgba(10,10,10,0.08)" stroke-width="0.8"/>
+  <text x="64" y="44.0" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end">3,500</text>
+  <text x="40" y="28" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">CA$ / MONTH</text>
+  <polyline points="80,412.5 212,412.5 344,408.8 476,378.1 608,337.6 740,245.3 872,60.7" fill="none" stroke="#9A9A9A" stroke-width="1.4" stroke-dasharray="5,4" stroke-linejoin="round"/>
+  <polyline points="80,418.5 212,411.0 344,411.0 476,386.3 608,352.6 740,276.6 872,124.6" fill="none" stroke="#6B6B6B" stroke-width="1.4" stroke-linejoin="round"/>
+  <polyline points="80,420.0 212,420.0 344,420.0 476,420.0 608,420.0 740,420.0 872,420.0" fill="none" stroke="#0A0A0A" stroke-width="2.4" stroke-linejoin="round"/>
+  <circle cx="80" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="212" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="344" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="476" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="608" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="740" cy="420.0" r="4" fill="#0A0A0A"/>
+  <circle cx="872" cy="420.0" r="4" fill="#0A0A0A"/>
+  <text x="884" y="64.7" fill="#9A9A9A" font-size="12" font-weight="400" font-family="'Geist Mono', monospace">CA$3,309</text>
+  <text x="884" y="128.6" fill="#6B6B6B" font-size="12" font-weight="400" font-family="'Geist Mono', monospace">CA$2,721</text>
+  <text x="884" y="424.0" fill="#0A0A0A" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">$0</text>
+  <text x="80" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">250</text>
+  <text x="212" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">1K</text>
+  <text x="344" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">2.5K</text>
+  <text x="476" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">10K</text>
+  <text x="608" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">25K</text>
+  <text x="740" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">50K</text>
+  <text x="872" y="440" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">100K</text>
+  <text x="872" y="464" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.14em">CHARGES / MONTH</text>
+  <line x1="40" y1="488" x2="960" y2="488" stroke="rgba(10,10,10,0.12)" stroke-width="0.8"/>
+  <text x="40" y="512" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+  <line x1="132" y1="507" x2="156" y2="507" stroke="#0A0A0A" stroke-width="2.4"/>
+  <text x="164" y="512" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">opensigma</text>
+  <line x1="320" y1="507" x2="344" y2="507" stroke="#6B6B6B" stroke-width="1.4"/>
+  <text x="352" y="512" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">Stripe Sigma</text>
+  <line x1="520" y1="507" x2="544" y2="507" stroke="#9A9A9A" stroke-width="1.4" stroke-dasharray="5,4"/>
+  <text x="552" y="512" fill="#6B6B6B" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">Stripe Data Pipeline</text>
+  <text x="40" y="536" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace">Stripe published annual-billing tiers, CAD · Data Pipeline excludes warehouse cost</text>
+</svg>
+</body>
+</html>

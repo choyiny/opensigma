@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="opensigma-logo-title opensigma-logo-desc">
+  <title id="opensigma-logo-title">opensigma</title>
+  <desc id="opensigma-logo-desc">A white capital sigma on a black rounded square.</desc>
+  <rect width="256" height="256" rx="58" fill="#0A0A0A"/>
+  <path d="M172 83 H84 L139 128 L84 173 H172"
+        fill="none" stroke="#FFFFFF" stroke-width="22"
+        stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="8"/>
+</svg>

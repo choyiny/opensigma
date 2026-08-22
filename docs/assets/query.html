@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>opensigma — natural-language query</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#FAFAFA; }
+  body { padding: 32px; font-family: 'Geist Mono', ui-monospace, monospace; }
+  .win { background:#FFFFFF; border:1px solid rgba(10,10,10,0.14); border-radius:12px; overflow:hidden; }
+  .chrome { height:44px; background:#F1F1F1; border-bottom:1px solid rgba(10,10,10,0.10);
+             display:flex; align-items:center; padding:0 16px; gap:8px; }
+  .dot { width:11px; height:11px; border-radius:50%; background:rgba(10,10,10,0.20); }
+  .chrome .title { flex:1; text-align:center; font-size:12px; color:#9A9A9A;
+                    letter-spacing:0.06em; margin-right:57px; }
+  .body { padding:28px 32px 24px; font-size:15px; line-height:1.75; color:#5F5F5F; }
+  .prompt { color:#0A0A0A; font-weight:600; }
+  .prompt .caret { color:#9A9A9A; margin-right:10px; }
+  .cmd { color:#0A0A0A; }
+  .steps { margin:14px 0 18px; }
+  .step { display:flex; gap:14px; font-size:13px; color:#9A9A9A; }
+  .step .k { width:132px; color:#5F5F5F; }
+  .sql { margin:0 0 20px; padding:16px 18px; border-left:2px solid rgba(10,10,10,0.10);
+          font-size:13.5px; line-height:1.7; color:#5F5F5F; white-space:pre; overflow:hidden; }
+  .kw { color:#0A0A0A; font-weight:600; }
+  .tbl { border-top:1px solid rgba(10,10,10,0.10); padding-top:14px; }
+  .hd, .row { display:grid; grid-template-columns:200px 108px 1fr 64px;
+               align-items:center; gap:20px; }
+  .hd { font-size:11px; letter-spacing:0.16em; color:#9A9A9A; padding-bottom:10px; }
+  .row { height:34px; font-size:14px; color:#0A0A0A; }
+  .num { text-align:right; font-weight:600; }
+  .track { height:9px; background:rgba(10,10,10,0.08); border-radius:2px; }
+  .fill { height:9px; background:#0A0A0A; border-radius:2px; }
+  .pct { text-align:right; font-size:13px; color:#5F5F5F; }
+  .foot { margin-top:16px; padding-top:12px; border-top:1px solid rgba(10,10,10,0.10);
+           display:flex; justify-content:space-between; font-size:12px; color:#9A9A9A; }
+</style></head>
+<body>
+  <div class="win">
+    <div class="chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="title">opensigma · stripe-schema-query</span>
+    </div>
+    <div class="body">
+      <div class="prompt"><span class="caret">&gt;</span><span class="cmd">/stripe-schema-query top products by revenue, last 90 days</span></div>
+
+      <div class="steps">
+        <div class="step"><span class="k">reading schema</span><span>src/db/schema.ts · 28 tables</span></div>
+        <div class="step"><span class="k">generating SQL</span><span>sqlite dialect</span></div>
+        <div class="step"><span class="k">executing</span><span>wrangler d1 execute stripe_sync --remote</span></div>
+      </div>
+
+<div class="sql"><span class="kw">SELECT</span> p.name, <span class="kw">SUM</span>(li.amount) / 100.0 <span class="kw">AS</span> revenue
+  <span class="kw">FROM</span> invoice_line_items li
+  <span class="kw">JOIN</span> invoices i  <span class="kw">ON</span> i.id  = li.invoice
+  <span class="kw">JOIN</span> prices   pr <span class="kw">ON</span> pr.id = json_extract(li.pricing, '$.price_details.price')
+  <span class="kw">JOIN</span> products p  <span class="kw">ON</span> p.id  = pr.product
+ <span class="kw">WHERE</span> i.status = 'paid' <span class="kw">AND</span> i.created &gt; unixepoch('now', '-90 days')
+ <span class="kw">GROUP BY</span> p.name <span class="kw">ORDER BY</span> revenue <span class="kw">DESC</span> <span class="kw">LIMIT</span> 5;</div>
+
+      <div class="tbl">
+        <div class="hd"><span>PRODUCT</span><span class="num">REVENUE</span><span>SHARE</span><span></span></div>
+        <div class="row"><span>Pro Plan</span><span class="num">$48,210</span><span class="track"><span class="fill" style="display:block;width:100.0%"></span></span><span class="pct">41.6%</span></div>
+        <div class="row"><span>Team Plan</span><span class="num">$29,940</span><span class="track"><span class="fill" style="display:block;width:62.1%"></span></span><span class="pct">25.8%</span></div>
+        <div class="row"><span>Starter</span><span class="num">$16,180</span><span class="track"><span class="fill" style="display:block;width:33.6%"></span></span><span class="pct">14.0%</span></div>
+        <div class="row"><span>Usage overage</span><span class="num">$12,350</span><span class="track"><span class="fill" style="display:block;width:25.6%"></span></span><span class="pct">10.7%</span></div>
+        <div class="row"><span>Onboarding</span><span class="num"> $9,180</span><span class="track"><span class="fill" style="display:block;width:19.0%"></span></span><span class="pct">7.9%</span></div>
+      </div>
+
+      <div class="foot"><span>5 rows · 34 ms</span><span>example output — figures illustrative</span></div>
+    </div>
+  </div>
+</body></html>

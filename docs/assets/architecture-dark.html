@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>opensigma — architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #0A0A0A; color: #F5F5F5; }
+  body { font-family: 'Geist', system-ui, sans-serif; padding: 40px; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.16em;
+             text-transform: uppercase; color: #9A9A9A; margin: 0 0 8px; }
+  h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 28px; margin: 0 0 24px; }
+  svg { display: block; width: 100%; height: auto; max-width: 1280px; }
+</style>
+</head>
+<body>
+<p class="eyebrow">opensigma</p>
+<h1>How the sync works</h1>
+<svg viewBox="0 0 1280 456" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="arch-dark-title arch-dark-desc">
+  <title id="arch-dark-title">opensigma architecture</title>
+  <desc id="arch-dark-desc">Stripe webhooks reach a Cloudflare Worker handler that upserts rows into a D1 database; an hourly scheduled handler enqueues backload jobs onto a queue whose consumer pages the Stripe REST API and upserts into the same database.</desc>
+  <defs>
+    <marker id="arch-dark-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#9A9A9A"/>
+    </marker>
+    <marker id="arch-dark-arrow-ink" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#F5F5F5"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#0A0A0A"/>
+  <g transform="translate(0,-24)">
+  <path d="M184,168 H200 Q208,168 208,160 V136 Q208,128 216,128 H232" fill="none" stroke="#9A9A9A" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+  <path d="M468,296 H516" fill="none" stroke="#9A9A9A" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+  <path d="M720,296 H768" fill="none" stroke="#9A9A9A" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+  <path d="M468,128 H1120 Q1128,128 1128,136 V156" fill="none" stroke="#9A9A9A" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+  <path d="M972,296 H1120 Q1128,296 1128,288 V268" fill="none" stroke="#9A9A9A" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+  <path d="M870,336 V376 Q870,384 862,384 H120 Q112,384 112,376 V296" fill="none" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arch-dark-arrow)"/>
+  <rect x="748" y="104" width="64" height="16" rx="2" fill="#0A0A0A"/>
+  <text x="780" y="116" fill="#7A7A7A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">UPSERT</text>
+  <rect x="1014" y="304" width="64" height="16" rx="2" fill="#0A0A0A"/>
+  <text x="1046" y="316" fill="#7A7A7A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">UPSERT</text>
+  <rect x="450" y="360" width="80" height="16" rx="2" fill="#0A0A0A"/>
+  <text x="490" y="372" fill="#7A7A7A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PAGINATE</text>
+  <rect x="40" y="128" width="144" height="168" rx="8" fill="#0A0A0A"/>
+  <rect x="40" y="128" width="144" height="168" rx="8" fill="rgba(245,245,245,0.04)" stroke="rgba(245,245,245,0.32)" stroke-width="1.2"/>
+  <text x="112" y="208" fill="#F5F5F5" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Stripe</text>
+  <text x="112" y="234" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">your account</text>
+  <rect x="232" y="88" width="236" height="80" rx="8" fill="#0A0A0A"/>
+  <rect x="232" y="88" width="236" height="80" rx="8" fill="#141414" stroke="#F5F5F5" stroke-width="1.2"/>
+  <text x="350" y="124" fill="#F5F5F5" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Webhook handler</text>
+  <text x="350" y="150" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">POST /webhooks/stripe</text>
+  <rect x="232" y="256" width="236" height="80" rx="8" fill="#0A0A0A"/>
+  <rect x="232" y="256" width="236" height="80" rx="8" fill="#141414" stroke="#F5F5F5" stroke-width="1.2"/>
+  <text x="350" y="292" fill="#F5F5F5" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Scheduled handler</text>
+  <text x="350" y="318" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">hourly · enqueues jobs</text>
+  <rect x="516" y="256" width="204" height="80" rx="8" fill="#0A0A0A"/>
+  <rect x="516" y="256" width="204" height="80" rx="8" fill="rgba(245,245,245,0.07)" stroke="#9A9A9A" stroke-width="1.2"/>
+  <text x="618" y="292" fill="#F5F5F5" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Backload queue</text>
+  <text x="618" y="318" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">stripe-sync-backload</text>
+  <rect x="768" y="256" width="204" height="80" rx="8" fill="#0A0A0A"/>
+  <rect x="768" y="256" width="204" height="80" rx="8" fill="#141414" stroke="#F5F5F5" stroke-width="1.2"/>
+  <text x="870" y="292" fill="#F5F5F5" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Queue consumer</text>
+  <text x="870" y="318" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">pages the REST API</text>
+  <rect x="1020" y="156" width="216" height="112" rx="8" fill="#0A0A0A"/>
+  <rect x="1020" y="156" width="216" height="112" rx="8" fill="#F5F5F5" stroke="#F5F5F5" stroke-width="1.2"/>
+  <text x="1128" y="208" fill="#0A0A0A" font-size="20" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">D1 database</text>
+  <text x="1128" y="234" fill="rgba(10,10,10,0.66)" font-size="12" font-family="'Geist Mono', monospace" text-anchor="middle">stripe_sync · 28 tables</text>
+  <line x1="40" y1="424" x2="1240" y2="424" stroke="rgba(245,245,245,0.14)" stroke-width="0.8"/>
+  <text x="40" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+  <rect x="132" y="441" width="12" height="12" rx="2" fill="rgba(245,245,245,0.04)" stroke="rgba(245,245,245,0.32)" stroke-width="1"/>
+  <text x="152" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">EXTERNAL</text>
+  <rect x="250" y="441" width="12" height="12" rx="2" fill="#141414" stroke="#F5F5F5" stroke-width="1"/>
+  <text x="270" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">WORKER</text>
+  <rect x="353" y="441" width="12" height="12" rx="2" fill="rgba(245,245,245,0.07)" stroke="#9A9A9A" stroke-width="1"/>
+  <text x="373" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">QUEUE</text>
+  <rect x="449" y="441" width="12" height="12" rx="2" fill="#F5F5F5" stroke="#F5F5F5" stroke-width="1"/>
+  <text x="469" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">DATA STORE</text>
+  <line x1="581" y1="447" x2="605" y2="447" stroke="#9A9A9A" stroke-width="1.4"/>
+  <text x="613" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">EVENT WRITE</text>
+  <line x1="732" y1="447" x2="756" y2="447" stroke="#9A9A9A" stroke-width="1.4" stroke-dasharray="4,3"/>
+  <text x="764" y="452" fill="#9A9A9A" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.06em">BACKFILL READ</text>
+  </g>
+</svg>
+</body>
+</html>

@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+    ignore:
+      # wrangler and the Workers types track the runtime; bump them together and
+      # deliberately rather than one at a time.
+      - dependency-name: "wrangler"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@cloudflare/workers-types"
+        update-types: ["version-update:semver-major"]
+      # The Stripe SDK major pins the pinned API version, which changes object
+      # shapes the schema mirrors. Majors need a schema review, not an auto-merge.
+      - dependency-name: "stripe"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
