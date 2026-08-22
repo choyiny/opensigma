@@ -17,7 +17,7 @@
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "hono": "^4.13.3",
-    "stripe": "^22.2.0"
+    "stripe": "^22.5.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild", "workerd"]
