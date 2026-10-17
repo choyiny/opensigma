@@ -23,12 +23,12 @@
     "onlyBuiltDependencies": ["esbuild", "workerd"]
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/vitest-pool-workers": "^0.23.0",
     "@cloudflare/workers-types": "^4.20260702.1",
-    "@types/node": "^26.2.0",
-    "drizzle-kit": "^0.31.10",
+    "@types/node": "^26.6.5",
+    "drizzle-kit": "^0.31.11",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11",
-    "wrangler": "^4.124.0"
+    "vitest": "^5.0.4",
+    "wrangler": "^4.151.0"
   }
 }
