@@ -15,7 +15,7 @@
     "backload:reset": "wrangler d1 execute stripe_sync --command \"UPDATE backload_state SET cursor=NULL, status='idle'; DELETE FROM backload_parent_progress;\""
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.4",
     "hono": "^4.13.3",
     "stripe": "^22.2.0"
   },
